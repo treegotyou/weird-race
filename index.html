@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+	<title>Beetle Race</title>
+	<link rel="stylesheet" type="text/css" href="game.css">
+</head>
+<body id="body"  onmousedown="return false" onselectstart="return false" onload="preload()">
+	<section id="game">
+		<span id="screen">
+			<div id="canvas"></div>
+        </span>
+        <span id="title">
+        	<h2>1965</h2>
+        </span>
+        <span id="interact">
+        	<div id="cntl">
+			  <div id="up" onmousedown="moveUp()" onmouseup="clearMove()" ontouchstart="moveUp()" ontouchend="clearMove()">^</div><br>
+			  <div id="left" onmousedown="moveLeft()" onmouseup="clearMove()" ontouchstart="moveLeft()" ontouchend="clearMove()"><</div>
+			  <div id="center" onmousedown="speedUp()" onmouseup="clearMove()" ontouchstart="speedUp()" ontouchend="clearMove()"></div>
+			  <div id="right" onmousedown="moveRight()" onmouseup="clearMoveRight()" ontouchstart="moveRight()" ontouchend="clearMoveRight()">></div><br>
+			  <div id="down" onmousedown="moveDown()" onmouseup="clearMove()" ontouchstart="moveDown()" ontouchend="clearMove()" >~</div>				
+		  </div>
+        </span>
+	</section>
+ <script src="game.js"></script>
+</body>
+</html>
