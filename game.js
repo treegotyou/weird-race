@@ -1,23 +1,30 @@
-let gamePiece, fuel = 300, burningFuel = false;
+let gamePiece, fuel = 300, burningFuel = false, burnTrigger = false;
 let gamePieceSprite, spriteCount = 0;
-let gameObstacle = [], obstacleSave = [];
+let gameObstacle = [], obstacleSave = [], obsX, obsY, obsH, obsN= 0;
 let gameScore, pointTotal, highScore, localStore;
 let paused;
 let optionA, optionB, optionC;
 let up = document.getElementById("up"), down = document.getElementById("down"), 
-              left = document.getElementById("left"), right = document.getElementById("right"), 
-              center = document.getElementById("center");
+    left = document.getElementById("left"), right = document.getElementById("right"), 
+    center = document.getElementById("center");
 let count = 0;
-let obsX, obsY, obsH, obsN= 0;
 let secondsPassed = 0, oldTimeStamp = 0, fps;
 let finishLine;
 let obstacleSpeed = 2, intervalRate = 250 / obstacleSpeed;
 let speedInterval;
 let obsPosition;
 let countBy = 1;
-let opponents = [], opponent = [], opponentSpeed = 50, opponentAvatar = [];
+let opponents = [], opponent = [], opponentSpeed = 50, dodgeSpeed = 0, opponentAvatar = [],
+	opp, oppX, oppY, oppW, oppH;
 let playerName;
-let position = 0, positionDisplay, playerPosition, playerPositionNo = 18;
+let position = 0, positionDisplay, playerPosition, playerPositionNo,
+	allPositions = [90], checkPosition = false, positionChecked = false,
+	positionColor = [
+	'', 'violet', 'teal','green', 'turquoise',
+	'olive', 'lime', 'peach', 'maroon', 'pink',
+	'silver', 'black', 'white', 'purple', 'magenta',
+	'blue', 'yellow', 'orange', 'red'
+	]; //ADD 'cyan' IF YOU EVER CHANGE BACKGROUND COLOR
 let avatar, pickedCount= 19;
 let bar, progress;
 
@@ -99,6 +106,8 @@ function loadOpponents() {
 			accelerateValue: 0,
 			checkAccelerate: false,
 			checkDetect: false,
+			positionPoint: 0,
+			position: i,
 			animate: () => {
 
 			}
@@ -141,7 +150,7 @@ startGame = function() {
 	bar = new component(370, 5, "white", 55, 40);
 	progress = new component(300, 1, "", 60, 42);
 	finishLine =  new component(20, 270, "blue", 19330, 0);//x is ( (480 - 200) * obsN ) + 480 + (10 * obsN)
-	playerName = new component("17px", "Consolas", "black", 0, 0, "text");
+	playerName = new component("17px", "Consolas", 'black' , 0, 0, "text");
 	positionDisplay = new component("20px", "Consolas", "white", 210, 40, "text");
     points = new component("20px", "Consolas", "black", 70, 28, "text");
     playerPosition = new component("20px", "Consolas", "black", 70, 28, "text");
@@ -172,9 +181,9 @@ const gameField = {
 
 	start : function() {
 		loadOpponents();
-		this.setZoomSize();
-		this.zoomInterval = 
-			setInterval(zoom, 8);
+		// this.setZoomSize();
+		// this.zoomInterval = 
+		// 	setInterval(zoom, 8);
 		endClick();
 		startControl();
 		center.ondblclick = pause;
@@ -333,8 +342,9 @@ function component(width, height, color, x, y, type) {
         };
     }
     
-    this.move = function(speed) {
-    	this.speedX = opponentSpeed + speed;
+    this.move = function(accelerate) {
+    	this.speedX = opponentSpeed + accelerate;
+    	this.speedY = dodgeSpeed;
     }
 
     //NEEDS FIXING
@@ -346,7 +356,7 @@ function component(width, height, color, x, y, type) {
         };
     }
     
-    this.namePlayer = function(name) {
+    this.namePlayer = function(name, color) {
     	playerName.text = name;
         if(name.length == 1) {
         	playerName.x = this.x + 42;
@@ -354,6 +364,7 @@ function component(width, height, color, x, y, type) {
         	playerName.x = this.x + 42 - ((name.length - 1) * 5);
         };
         playerName.y = this.y - 3;
+        playerName.color = color;
         playerName.update();
         
         if(checked == false && this.x + this.width >= finishLine.x) {
@@ -365,6 +376,10 @@ function component(width, height, color, x, y, type) {
            positionDisplay.text = "No " + position + ": " + name;
         };
     }
+
+    // this.updateColor = function() {
+    // 	this.playerName.color = positionColor[this.position];
+    // }
 	
 	
 	this.animate = function() {
@@ -606,16 +621,21 @@ const zoom = () => {
 };
 
 const burnFuel = () => {
-	if(burningFuel === false && fuel <  300) {
+	if(!burningFuel && fuel <  300) {
 		fuel+= 5;
 		if(fuel + 5 >= 300) {
 			fuel = 300;
+			if (burnTrigger) {
+				moveRight();
+			}
 		}
-	} else if(burningFuel === true && fuel > 0 ){
+	} else if(burningFuel && fuel > 0 ){
 		fuel--;
 		if(fuel === 0) {
 			burningFuel = false;
-			clearMoveRight();
+			countBy = 1;
+		   	obstacleSpeed = 2;
+		   	opponentSpeed = 50;
 		}
 	};
 	
@@ -666,27 +686,52 @@ const updateField = (timeStamp) => {
 		gameObstacle.push(new component(10, height, "yellow", x + delay, y + height + gap));
 		gameObstacle.push(new component(10, height , "yellow", x + delay, y + height + gap + height + gap));
 		gameObstacle.push(new component(10, height , "yellow", x + delay, y + height + gap + height + gap + height + gap ));
-		obstacleSave.push(new component(10, height, "yellow", x + delay, y));
-		obstacleSave.push(new component(10, height, "yellow", x + delay, y + height + gap));
-		obstacleSave.push(new component(10, height , "yellow", x + delay, y + height + gap + height + gap));
-		obstacleSave.push(new component(10, height , "yellow", x + delay, y + height + gap + height + gap + height + gap ));
+	
 		
 		obsN++;
 	}
+
+	let aaa = false;
 
 	//MOVE OBSTACLES
 	for (i = 0; i < gameObstacle.length; i++) {
 		gameObstacle[i].speedX = -1;
 		gameObstacle[i].obsPos();
-		
 		gameObstacle[i].update();
 		obsPosition = gameObstacle[i].x;
+
+		//ASSIGNING OBSTACLES PROPERTIES TO VARIABLES
 		
-		
-		obsY = gameObstacle[i].y;
-		obsX = gameObstacle[i].x;
-		obsH = gameObstacle[i].y + gameObstacle[i].height;
 	}
+
+	//MAKE OPPONENTS AVOID OBSTACLES
+	for (i = 0; i < opponent.length; i++) {
+		// if(gameObstacle[i] !== undefined) {
+		// 	oppX = opponent[i].x;
+		// 	oppY = opponent[i].y;
+		// 	oppH = opponent[i].height;
+		// 	oppW = opponent[i].width;
+		// 	obsX = gameObstacle[i].x;
+		// 	obsY = gameObstacle[i].y;
+		// 	obsH = gameObstacle[i].height;
+
+		// 	if(
+		// 		 (oppX + oppW < gameField.canvas.width && oppX + oppW + 100 >= obsX && obsX > oppX + oppW)
+		// 	) {
+		// 		console.log(i, ' run o')
+
+		// 	} else {
+		// 		console.log(1)
+		// 		// console.log("add: ", oppX + oppW, "field: ", gameField.canvas.width )
+		// 	}
+
+		// 	// console.log("obsX: ", gameObstacle[i].x, "No: ", i)
+		// } else {
+		// 	// console.log('wo joor')
+		// }
+	}
+
+
 	
 	
     if(obsN <= 105) {
@@ -704,7 +749,7 @@ const updateField = (timeStamp) => {
 	//};
 	
 	//OPPONENTS UPDATE TO SCREEN
-	for (i = 0; i < opponents.length; i += 1) {
+	for (i = 0; i < opponents.length; i++) {
 		if(opponent[i] === undefined) {
 			opponent[i] = new component(
 				80, 32, opponents[i].images[0] , opponents[i].x , opponents[i].y, "image"
@@ -714,6 +759,12 @@ const updateField = (timeStamp) => {
 
 			//RANDOM ACCELERATIONS
 			opponents[i].accelerateTime++;
+
+			opp = opponent[i];
+			oppX = opponent[i].x;
+			oppY = opponent[i].y;
+			oppH = opponent[i].height;
+			oppW = opponent[i].width;
 
 			let minAV = 45;
 			let maxAV = 65;
@@ -749,31 +800,38 @@ const updateField = (timeStamp) => {
 			}
 
 
-			opponent[i].namePlayer(opponents[i].name);
+			opponent[i].namePlayer(opponents[i].name, positionColor[opp.position]);
 			opponent[i].disableEscapeScreen();
-			// opponent[i].animate();
 			opponent[i].move(opponents[i].accelerateValue);
 			opponent[i].newPos(secondsPassed);
 			opponent[i].update();
 
-			//DETECT PLAYER POSITION
-			if(
-				!opponents[i].checkDetect &&
-				opponent[i].x + opponent[i].width < gamePiece.x + gamePiece.width
-			) {
-				playerPositionNo--;
-				opponents[i].checkDetect = true;
-			} else if (
-				opponents[i].checkDetect &&
-				opponent[i].x + opponent[i].width > gamePiece.x + gamePiece.width
-			) {
-				playerPositionNo++;
-				opponents[i].checkDetect = false;
-			};
+			//DETECT POSITIONS
+			if (positionChecked) {
+				opp.positionPoint = oppX + oppW;
+				allPositions = [gamePiece.x + gamePiece.width, opp.positionPoint];
+				positionChecked = false;
+				checkPosition = false;
 
-			//MAKE OPPONENTS AVOID COLLISION WITH OTHER OPPONENTS
+			} else if(!checkPosition) {
+				opp.positionPoint = oppX + oppW;
+				allPositions.push(opp.positionPoint);
+
+				if (i === opponents.length - 1) {
+					allPositions.sort((a,b) => b - a);
+					checkPosition = true;
+				};
+
+			} else if(checkPosition) {
+				opp.position = allPositions.indexOf(opp.positionPoint) + 1;
+				playerPositionNo = allPositions.indexOf(gamePiece.x + gamePiece.width) + 1;
+
+				if (i === opponents.length - 1) {
+					positionChecked = true;
+				};
+
+			}
 			
-
 		}
 
 	};
@@ -791,13 +849,11 @@ const updateField = (timeStamp) => {
 	
     animateOpponents();
     
-    gamePiece.namePlayer("eniola");
-    
+    gamePiece.namePlayer("eniola", positionColor[playerPositionNo]);
     gamePiece.disableEscapeScreen();
     gamePiece.animate();
     gamePiece.newPos(secondsPassed);
     gamePiece.update();
-
     playerPosition.text = playerPositionNo;
     playerPosition.update();
     
@@ -807,9 +863,9 @@ const updateField = (timeStamp) => {
 
 
 
-    if(gameField.canvas.width < 490 || gameField.canvas.height < 280 ) {
-    	gameField.clearZoomInterval();
-  	};
+   //  if(gameField.canvas.width < 490 || gameField.canvas.height < 280 ) {
+   //  	gameField.clearZoomInterval();
+  	// };
 
   	burnFuel();
 
@@ -858,6 +914,7 @@ startControl = function() {
 
     moveRight = function() {
 	    burningFuel = true;
+	    burnTrigger = true;
 	    countBy = 2;
 	    obstacleSpeed = 6;
 	    opponentSpeed = -100;
@@ -866,71 +923,62 @@ startControl = function() {
 	    	burningFuel = false;
 	    	clearMoveRight()
 	    };
-        
-        
-        
-    	//gamePiece.speedX = 50;
-      //gamePiece.speedX = 50;
-      //secondPassed += 5;
+
     };
 
-   clearMoveRight = function() {
+    clearMoveRight = function() {
    		burningFuel = false;
+   		burnTrigger = false;
    		countBy = 1;
 	   	obstacleSpeed = 2;
 	   	opponentSpeed = 50;
-        
+    };
    
-
-
-  
-   };
-   
-   clearMove = function() {
-   	obstacleSpeed = 2;
-   opponentSpeed = 50;
-	  gamePiece.speedX = 0;
-	  gamePiece.speedY = 0;
-  };
+    clearMove = function() {
+   		obstacleSpeed = 2;
+    	opponentSpeed = 50;
+	    gamePiece.speedX = 0;
+	    gamePiece.speedY = 0;
+    };
   
   pause = function() {         
-       gamePiece.rotateUpdate();
-       //Make canvas full screen
-       game.removeChild(document.getElementById("screen"));
-       game.removeChild(document.getElementById("title"));
-       game.removeChild(document.getElementById("interact"));
-       gameField.canvas.style.minHeight = "100%";
-       gameField.canvas.style.height = "100%";
-       gameField.canvas.style.minWidth = "100%";
-       gameField.canvas.style.width = "100%";
-       gameField.canvas.style.display = "block";
-       game.appendChild(gameField.canvas);
-       //Trying to make the new view full screen
-       gameField.canvas.style.top = "50%";
-       gameField.canvas.style.bottom = "0%";
-       gameField.canvas.style.left = "150%";
-       gameField.canvas.style.right = "0%";
-       gameField.canvas.style.padding = "0%";
-       gameField.canvas.style.margin = "0%";      
+       // gamePiece.rotateUpdate();
+       // //Make canvas full screen
+       // game.removeChild(document.getElementById("screen"));
+       // game.removeChild(document.getElementById("title"));
+       // game.removeChild(document.getElementById("interact"));
+       // gameField.canvas.style.minHeight = "100%";
+       // gameField.canvas.style.height = "100%";
+       // gameField.canvas.style.minWidth = "100%";
+       // gameField.canvas.style.width = "100%";
+       // gameField.canvas.style.display = "block";
+       // game.appendChild(gameField.canvas);
+       // //Trying to make the new view full screen
+       // gameField.canvas.style.top = "50%";
+       // gameField.canvas.style.bottom = "0%";
+       // gameField.canvas.style.left = "150%";
+       // gameField.canvas.style.right = "0%";
+       // gameField.canvas.style.padding = "0%";
+       // gameField.canvas.style.margin = "0%";      
   };
   
    resume = function() {
-  	gameField.runInterval =
-		  setInterval(run, 2500);
-       gameField.interval =
-		  setInterval(updateField, 20);
-	   startControl();
-	   center.onclick = " ";
-	   
-   };
+  	// gameField.runInterval =
+		 //  setInterval(run, 2500);
+   //     gameField.interval =
+		 //  setInterval(updateField, 20);
+	  //  startControl();
+	  //  center.onclick = " ";   
+    };
+
 }
 
-endControl = function() {
-  	let clear = clearMove();
-  	moveUp = clear;
-      moveDown = clear;
-      moveLeft = clear;
-      moveRight = clear;
-      
-};
+	endControl = function() {
+	  	let clear = clearMove();
+	  	moveUp = clear;
+	      moveDown = clear;
+	      moveLeft = clear;
+	      moveRight = clear;
+	      
+	};
 
