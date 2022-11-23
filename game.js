@@ -1,10 +1,10 @@
 let gamePiece, fuel = 300, burningFuel = false, burnTrigger = false;
 let gamePieceSprite, spriteCount = 0;
-let gameObstacle = [], obstacleSave = [], obsX, obsY, obsH, obsN= 0;
+let gameObstacle = [], obstacleSave = [], obsX, obsY, obsH, obsN= 0, id = 0;
 let gameScore, pointTotal, highScore, localStore;
 let paused;
 let optionA, optionB, optionC;
-let up = document.getElementById("up"), down = document.getElementById("down"), 
+const up = document.getElementById("up"), down = document.getElementById("down"), 
     left = document.getElementById("left"), right = document.getElementById("right"), 
     center = document.getElementById("center");
 let count = 0;
@@ -52,17 +52,17 @@ preload = function() {
 	img3 = [];
 
 	for(let i = 0;  i < 15; i++) {
-    	img1[i] = new Image();
+    	// img1[i] = new Image();
     	img1[i] = `Star-Bug/png/skeleton-animation_${i}.png`;
     };
     
     for(let i = 0;  i < 15; i++) {
-    	img2[i] = new Image();
+    	// img2[i] = new Image();
     	img2[i] = `Purple-Bug/png/skeleton-animation_${i}.png`;
     };
     
     for(let i = 0;  i < 11; i++) {
-    	img3[i] = new Image();
+    	// img3[i] = new Image();
     	img3[i] = `Flappy-Box/png/skeleton-animation_${i}.png`; 
 	};
 	startGame();
@@ -181,9 +181,9 @@ const gameField = {
 
 	start : function() {
 		loadOpponents();
-		// this.setZoomSize();
-		// this.zoomInterval = 
-		// 	setInterval(zoom, 8);
+		this.setZoomSize();
+		this.zoomInterval = 
+			setInterval(zoom, 8);
 		endClick();
 		startControl();
 		center.ondblclick = pause;
@@ -266,7 +266,7 @@ const gameField = {
 	},
 	
 	clearOption : function() {
-		this.context.clearRect(130, 115, 245, 137);
+		this.context.clearRect(130, 115, 310, 137);
 	},
 	
 	stop : function() {
@@ -489,84 +489,7 @@ function component(width, height, color, x, y, type) {
 	}
 }
 
-function hoverUp() {
-	if(optionA.width == "50px") {
-		gameField.clearOption();
-	    optionC.choose();
-	    optionA.unChoose();
-	    showOptions();
-    } else if(optionC.width == "50px") {
-	    gameField.clearOption();
-	    optionB.choose();
-        optionC.unChoose();
-        showOptions();
-    } else {
-	    gameField.clearOption();
-	    optionA.choose();
-        optionB.unChoose();
-        showOptions();
-    };
-}
 
-function hoverDown() {
-	if(optionA.width == "50px") {
-		gameField.clearOption();
-	    optionB.choose();
-	    optionA.unChoose();
-	    showOptions();
-    } else if(optionB.width == "50px") {
-	    gameField.clearOption();
-	    optionC.choose();
-        optionB.unChoose();
-        showOptions();
-    } else {
-	    gameField.clearOption();
-	    optionA.choose();
-        optionC.unChoose();
-        showOptions();
-    };
-}
-
-function select() {
-   	if(optionA.width == "50px") {
-   	if(optionA.text == "Restart") {
-   	gameField.reset();
-   	};
-       gameField.canvas.style.backgroundImage = "url(' '), url(' '), url('Gem Orange.png'), url('Gem Green.png '), url(' ')";
-	   gameField.start();
-		
-    } else if(optionB.width == "50px") {
-      	
-        
-      } else {
-      if(optionC.text == "Exit") {
-      	window.close();
-        } else {
-        	gameField.canvas.style.backgroundImage = "url(' '), url(' '), url('Gem Orange.png'), url(' Gem Green.png'), url('')";
-        	gameField.reset();
-        	gameField.loadIndex();
-            gameField.clearOption();
-            optionC.unChoose();
-            showOptions();
-        };
-    }
-}
-
-function startClick() {
-	up.onclick = hoverUp;
-	down.onclick = hoverDown;
-    right.onclick = hoverDown;
-    left.onclick = hoverUp;
-    center.onclick = select;
-}
-
-function endClick() {
-	up.onclick = " ";
-	down.onclick = " ";
-    right.onclick = " ";
-    left.onclick = " ";
-    center.onclick = " ";
-}
 
 function updateIndex() {
 	optionA.text = "Play Game";
@@ -662,7 +585,7 @@ const updateField = (timeStamp) => {
 	
 	
 	//CREATE OBSTACLES
-	if (gameField.frameNo  == 1 ) {
+	if (gameField.frameNo  === 1 ) {
 		x = gameField.canvas.width;
 		minDelay = 0;
 		maxDelay = 5;
@@ -687,7 +610,9 @@ const updateField = (timeStamp) => {
 		gameObstacle.push(new component(10, height , "yellow", x + delay, y + height + gap + height + gap));
 		gameObstacle.push(new component(10, height , "yellow", x + delay, y + height + gap + height + gap + height + gap ));
 	
-		
+
+		obstacleSave.push(id, gameObstacle)
+		id++;
 		obsN++;
 	}
 
@@ -701,6 +626,11 @@ const updateField = (timeStamp) => {
 		obsPosition = gameObstacle[i].x;
 
 		//ASSIGNING OBSTACLES PROPERTIES TO VARIABLES
+		// if(!obstacleSave.includes(id)) {
+		// 	console.log(obstacleSave)
+		// } else {
+		// 	console.log('none')
+		// }
 		
 	}
 
@@ -836,16 +766,6 @@ const updateField = (timeStamp) => {
 
 	};
 
-
-
-
-
-
-
-
-
-
-
 	
     animateOpponents();
     
@@ -863,9 +783,9 @@ const updateField = (timeStamp) => {
 
 
 
-   //  if(gameField.canvas.width < 490 || gameField.canvas.height < 280 ) {
-   //  	gameField.clearZoomInterval();
-  	// };
+    if(gameField.canvas.width < 490 || gameField.canvas.height < 280 ) {
+    	gameField.clearZoomInterval();
+  	};
 
   	burnFuel();
 
@@ -880,7 +800,7 @@ const updateField = (timeStamp) => {
 	
 }
 
-function everyinterval(n) {
+const everyinterval = (n) => {
 	if ((gameField.frameNo / n) % 1 == 0) {
 		return true;
 	}
@@ -888,97 +808,181 @@ function everyinterval(n) {
 }
 
 
-startControl = function() {
-	moveUp = function() {
-		gamePiece.speedY = -50;
+//CLICK FUNCTIONS
+const hoverUp = () => {
+	if(optionA.width == "50px") {
+		gameField.clearOption();
+	    optionC.choose();
+	    optionA.unChoose();
+	    showOptions();
+    } else if(optionC.width == "50px") {
+	    gameField.clearOption();
+	    optionB.choose();
+        optionC.unChoose();
+        showOptions();
+    } else {
+	    gameField.clearOption();
+	    optionA.choose();
+        optionB.unChoose();
+        showOptions();
     };
-
-    moveDown = function() {
-	gamePiece.speedY = 50;
-     };
-
-    moveLeft = function() {
-	   obstacleSpeed = -1;
-	   opponentSpeed = 250;
-    };
-    
-    clearMoveLeft = function() {
-    	obstacleSpeed = 2;
-        opponents.opponent2.move();
-        opponents.opponent3.move();
-        opponents.opponent4.move();
-        opponents.opponent5.move();
-        opponents.opponent6.move();
-        opponents.opponent7.move();
-    }
-
-    moveRight = function() {
-	    burningFuel = true;
-	    burnTrigger = true;
-	    countBy = 2;
-	    obstacleSpeed = 6;
-	    opponentSpeed = -100;
-
-	    if(fuel < 1) {
-	    	burningFuel = false;
-	    	clearMoveRight()
-	    };
-
-    };
-
-    clearMoveRight = function() {
-   		burningFuel = false;
-   		burnTrigger = false;
-   		countBy = 1;
-	   	obstacleSpeed = 2;
-	   	opponentSpeed = 50;
-    };
-   
-    clearMove = function() {
-   		obstacleSpeed = 2;
-    	opponentSpeed = 50;
-	    gamePiece.speedX = 0;
-	    gamePiece.speedY = 0;
-    };
-  
-  pause = function() {         
-       // gamePiece.rotateUpdate();
-       // //Make canvas full screen
-       // game.removeChild(document.getElementById("screen"));
-       // game.removeChild(document.getElementById("title"));
-       // game.removeChild(document.getElementById("interact"));
-       // gameField.canvas.style.minHeight = "100%";
-       // gameField.canvas.style.height = "100%";
-       // gameField.canvas.style.minWidth = "100%";
-       // gameField.canvas.style.width = "100%";
-       // gameField.canvas.style.display = "block";
-       // game.appendChild(gameField.canvas);
-       // //Trying to make the new view full screen
-       // gameField.canvas.style.top = "50%";
-       // gameField.canvas.style.bottom = "0%";
-       // gameField.canvas.style.left = "150%";
-       // gameField.canvas.style.right = "0%";
-       // gameField.canvas.style.padding = "0%";
-       // gameField.canvas.style.margin = "0%";      
-  };
-  
-   resume = function() {
-  	// gameField.runInterval =
-		 //  setInterval(run, 2500);
-   //     gameField.interval =
-		 //  setInterval(updateField, 20);
-	  //  startControl();
-	  //  center.onclick = " ";   
-    };
-
 }
 
-	endControl = function() {
-	  	let clear = clearMove();
-	  	moveUp = clear;
-	      moveDown = clear;
-	      moveLeft = clear;
-	      moveRight = clear;
-	      
-	};
+const hoverDown = () => {
+	if(optionA.width == "50px") {
+		gameField.clearOption();
+	    optionB.choose();
+	    optionA.unChoose();
+	    showOptions();
+    } else if(optionB.width == "50px") {
+	    gameField.clearOption();
+	    optionC.choose();
+        optionB.unChoose();
+        showOptions();
+    } else {
+	    gameField.clearOption();
+	    optionA.choose();
+        optionC.unChoose();
+        showOptions();
+    };
+}
 
+const select = () => {
+   	if(optionA.width == "50px") {
+   	if(optionA.text == "Restart") {
+   	gameField.reset();
+   	};
+       gameField.canvas.style.backgroundImage = "url(' '), url(' '), url('Gem Orange.png'), url('Gem Green.png '), url(' ')";
+	   gameField.start();
+		
+    } else if(optionB.width == "50px") {
+      	
+        
+      } else {
+      if(optionC.text == "Exit") {
+      	window.close();
+        } else {
+        	gameField.canvas.style.backgroundImage = "url(' '), url(' '), url('Gem Orange.png'), url(' Gem Green.png'), url('')";
+        	gameField.reset();
+        	gameField.loadIndex();
+            gameField.clearOption();
+            optionC.unChoose();
+            showOptions();
+        };
+    }
+}
+
+const startClick = () => {
+	up.onclick = hoverUp;
+	down.onclick = hoverDown;
+    right.onclick = hoverDown;
+    left.onclick = hoverUp;
+    center.onclick = select;
+}
+
+const endClick = () => {
+	up.onclick = " ";
+	down.onclick = " ";
+    right.onclick = " ";
+    left.onclick = " ";
+    center.onclick = " ";
+}
+
+
+//CONTROL FUNCTIONS
+const moveUp = () =>
+	gamePiece.speedY = -50;
+
+const moveDown = () =>
+	gamePiece.speedY = 50;
+
+const moveLeft = () => {
+	obstacleSpeed = -1;
+	opponentSpeed = 250;
+};
+
+const clearMoveLeft = () => {
+	obstacleSpeed = 2;
+	opponents.opponent2.move();
+	opponents.opponent3.move();
+	opponents.opponent4.move();
+	opponents.opponent5.move();
+	opponents.opponent6.move();
+	opponents.opponent7.move();
+}
+
+const moveRight = () => {
+    burningFuel = true;
+    burnTrigger = true;
+    countBy = 2;
+    obstacleSpeed = 6;
+    opponentSpeed = -100;
+
+    if(fuel < 1) {
+    	burningFuel = false;
+    	clearMoveRight()
+    };
+
+};
+
+const clearMoveRight = () => {
+	burningFuel = false;
+	burnTrigger = false;
+	countBy = 1;
+   	obstacleSpeed = 2;
+   	opponentSpeed = 50;
+};
+
+const clearMove = () => {
+	obstacleSpeed = 2;
+	opponentSpeed = 50;
+    gamePiece.speedX = 0;
+    gamePiece.speedY = 0;
+};
+
+const pause = () => {         
+   // gamePiece.rotateUpdate();
+   // //Make canvas full screen
+   // game.removeChild(document.getElementById("screen"));
+   // game.removeChild(document.getElementById("title"));
+   // game.removeChild(document.getElementById("interact"));
+   // gameField.canvas.style.minHeight = "100%";
+   // gameField.canvas.style.height = "100%";
+   // gameField.canvas.style.minWidth = "100%";
+   // gameField.canvas.style.width = "100%";
+   // gameField.canvas.style.display = "block";
+   // game.appendChild(gameField.canvas);
+   // //Trying to make the new view full screen
+   // gameField.canvas.style.top = "50%";
+   // gameField.canvas.style.bottom = "0%";
+   // gameField.canvas.style.left = "150%";
+   // gameField.canvas.style.right = "0%";
+   // gameField.canvas.style.padding = "0%";
+   // gameField.canvas.style.margin = "0%";      
+};
+
+const resume = () => {
+	// gameField.runInterval =
+	 //  setInterval(run, 2500);
+//     gameField.interval =
+	 //  setInterval(updateField, 20);
+  //  startControl();
+  //  center.onclick = " ";   
+};
+
+
+const startControl = () => {
+	up.onmousedown = up.ontouchstart = moveUp;
+	down.onmousedown = down.ontouchstart = moveDown;
+	left.onmousedown = left.ontouchstart = moveLeft;
+	right.onmousedown = right.ontouchstart = moveRight;
+}
+
+
+
+const endControl = () => {
+	up.onmousedown = up.ontouchstart = "";
+	down.onmousedown = down.ontouchstart = "";
+	left.onmousedown = left.ontouchstart = "";
+	right.onmousedown = right.ontouchstart = "";  
+};

@@ -1,0 +1,8 @@
+	if(
+		(oppX + oppW + 100 >= obsX && obsX > oppX + oppW) &&
+		
+		(oppY >= obsY || oppY + oppH >= obsY) &&
+		(oppY <= obsY + obsH || oppY + oppH <= obsY + obsH)
+	)
+
+	&& oppX + oppW > 480 && obsX > oppX + oppW
