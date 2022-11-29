@@ -1,5 +1,5 @@
 let gamePiece, fuel = 300, burningFuel = false, burnTrigger = false;
-let gamePieceSprite, spriteCount = 0;
+let numColumns, frameWidth, currentFrame = 0;
 let gameObstacle = [], obstacleSave = [], obsX, obsY, obsH, obsN= 0, id = 0;
 let gameScore, pointTotal, highScore, localStore;
 let paused;
@@ -14,7 +14,7 @@ let obstacleSpeed = 2, intervalRate = 250 / obstacleSpeed;
 let speedInterval;
 let obsPosition;
 let countBy = 1;
-let opponents = [], opponent = [], opponentSpeed = 50, dodgeSpeed = 0, opponentAvatar = [],
+let opponents = [], opponent = [], opponentSpeed = 0, dodgeSpeed = 0, opponentAvatar = [],
 	opp, oppX, oppY, oppW, oppH;
 let playerName;
 let position = 0, positionDisplay, playerPosition, playerPositionNo,
@@ -27,6 +27,9 @@ let position = 0, positionDisplay, playerPosition, playerPositionNo,
 	]; //ADD 'cyan' IF YOU EVER CHANGE BACKGROUND COLOR
 let avatar, pickedCount= 19;
 let bar, progress;
+let gap, gapY1, gapY2, gapY3, gapY4, gapCenter;
+
+
 
 //SAVE GAME SCORES TO LOCAL-STORAGE
 if(typeof(Storage)!=="undefined"){
@@ -47,24 +50,11 @@ if(typeof(Storage)!=="undefined"){
  
 //PRELOAD GAME ASSETS
 preload = function() {
-	img1 = [];
-	img2 = [];
-	img3 = [];
+	img1 = 'sprites/star-bug.png';
+	img2 = 'sprites/purple-bug.png';
+	img3 = 'sprites/flappy-box.png' ;
 
-	for(let i = 0;  i < 15; i++) {
-    	// img1[i] = new Image();
-    	img1[i] = `Star-Bug/png/skeleton-animation_${i}.png`;
-    };
-    
-    for(let i = 0;  i < 15; i++) {
-    	// img2[i] = new Image();
-    	img2[i] = `Purple-Bug/png/skeleton-animation_${i}.png`;
-    };
-    
-    for(let i = 0;  i < 11; i++) {
-    	// img3[i] = new Image();
-    	img3[i] = `Flappy-Box/png/skeleton-animation_${i}.png`; 
-	};
+
 	startGame();
  };
 
@@ -95,7 +85,7 @@ function loadOpponents() {
 			Math.floor(Math.random() * (name20 - name0 + 1) + name0);
 		opponents[i] = {
 			y: y,
-			images: avatar[N],
+			sprite: avatar[1],
 			limit: avatar[N].length,
 			name: names[name],
 			x: x,
@@ -108,6 +98,8 @@ function loadOpponents() {
 			checkDetect: false,
 			positionPoint: 0,
 			position: i,
+			timeToEscape: 0,
+			escapeGap: y,
 			animate: () => {
 
 			}
@@ -145,7 +137,7 @@ const animateOpponents = () => {
 
 //ASSIGN NEW COMPONENTS TO VARIABLES AND CALL LOADINDEX()
 startGame = function() {
-	gamePiece = new component(80, 32, img1[0] , 10, 119, "image");
+	gamePiece = new component(80, 32, img1 , 10, 119, "sprite");
 	gameScore = new component("20px", "Consolas", "black", 210, 100, "text");
 	bar = new component(370, 5, "white", 55, 40);
 	progress = new component(300, 1, "", 60, 42);
@@ -153,7 +145,7 @@ startGame = function() {
 	playerName = new component("17px", "Consolas", 'black' , 0, 0, "text");
 	positionDisplay = new component("20px", "Consolas", "white", 210, 40, "text");
     points = new component("20px", "Consolas", "black", 70, 28, "text");
-    playerPosition = new component("20px", "Consolas", "black", 70, 28, "text");
+    playerPosition = new component("20px", "Consolas", "red", 70, 28, "text");
     score = new component("20px", "Consolas", "white", 270, 28, "text");
     paused = new component(105, 70, "play.png", 180, 90, "image");
     optionA = new component("35px", "Cursive", "black", 133, 152, "text");
@@ -169,7 +161,7 @@ const gameField = {
 	document.createElement("canvas"),
 	
 	loadIndex : function() {
-	this.canvas.width = 480;
+	this.canvas.width = 680;
 	this.canvas.height = 270;
 	this.context =
 	this.canvas.getContext("2d");
@@ -181,11 +173,12 @@ const gameField = {
 
 	start : function() {
 		loadOpponents();
-		this.setZoomSize();
-		this.zoomInterval = 
-			setInterval(zoom, 8);
+		// this.setZoomSize();
+		// this.zoomInterval = 
+		// 	setInterval(zoom, 8);
+		obstacleSpeed = 100;
 		endClick();
-		startControl();
+		setTimeout(startControl, 1500);
 		center.ondblclick = pause;
 		this.runNo = 0;
 		this.runInterval =
@@ -277,30 +270,30 @@ const gameField = {
 		clearInterval(this.runInterval);
 	},
 
-	setZoomSize: function() {
-		this.canvas.width+= 1520;
-		this.canvas.height+= 1520;
-		gamePiece.y+= 1520/2;
-	},
+	// setZoomSize: function() {
+	// 	this.canvas.width+= 1520;
+	// 	this.canvas.height+= 1520;
+	// 	gamePiece.y+= 1520/2;
+	// },
 
-	checkZoomClear: false,
+	// checkZoomClear: false,
 
-	clearZoomInterval: function() {
-		if(!this.checkZoomClear) {
-			clearInterval(this.zoomInterval);
-			gameField.canvas.width = 480;
-			gameField.canvas.height = 270;
-			gamePiece.y = 119;
-			this.checkZoomClear = true;
-		};
-	}
+	// clearZoomInterval: function() {
+	// 	if(!this.checkZoomClear) {
+	// 		clearInterval(this.zoomInterval);
+	// 		gameField.canvas.width = 480;
+	// 		gameField.canvas.height = 270;
+	// 		gamePiece.y = 119;
+	// 		this.checkZoomClear = true;
+	// 	};
+	// }
 
 }
 
 function component(width, height, color, x, y, type) {
 	this.type = type;
 	this.color = color;
-	if (type == "image") {
+	if (type === "image" || type === "sprite") {
         this.image = new Image();
         this.image.src = this.color;
     }
@@ -314,12 +307,28 @@ function component(width, height, color, x, y, type) {
 		ctx = gameField.context;
 		
 		if(this.type == "image") {
-			
 			ctx.drawImage(this.image,
              this.x,
              this.y,
              this.width, this.height);
-          } else if (this.type == "text") {
+        } else if (this.type === "sprite") {
+			numColumns = this.image.src == img3 ? 12 : 15;
+			frameWidth = this.image.naturalWidth / numColumns;
+			let column = currentFrame % numColumns;
+			// console.log(this.image)
+
+        	ctx.drawImage(
+        		this.image,
+        		column * frameWidth,
+        		0,
+        		frameWidth,
+        		this.image.naturalHeight,
+        		this.x,
+            	this.y,
+        		this.width,
+        		this.height
+	        );
+        } else if (this.type == "text") {
 			ctx.font = this.width + " " + this.height;
 			ctx.fillStyle = this.color;
 			ctx.fillText(this.text, this.x, this.y);
@@ -342,10 +351,6 @@ function component(width, height, color, x, y, type) {
         };
     }
     
-    this.move = function(accelerate) {
-    	this.speedX = opponentSpeed + accelerate;
-    	this.speedY = dodgeSpeed;
-    }
 
     //NEEDS FIXING
     let checked = false;
@@ -365,6 +370,7 @@ function component(width, height, color, x, y, type) {
         };
         playerName.y = this.y - 3;
         playerName.color = color;
+        playerPosition.color = color;
         playerName.update();
         
         if(checked == false && this.x + this.width >= finishLine.x) {
@@ -383,10 +389,10 @@ function component(width, height, color, x, y, type) {
 	
 	
 	this.animate = function() {
-		this.image.src = img1[count];
-		count+= countBy;
-		if(count > 14) {
-			count = 0;
+		currentFrame+= countBy;
+
+		if(currentFrame > 11) {
+			currentFrame = 0
 		};
 	}
 
@@ -439,6 +445,11 @@ function component(width, height, color, x, y, type) {
 			this.y = 0;
        };
 	}
+
+    this.move = function(accelerate) {
+    	this.speedX = opponentSpeed + accelerate;
+    	this.speedY = dodgeSpeed;
+    }
 	
 	this.newPos = function(secondsPassed) {
 		this.x += (this.speedX * secondsPassed );
@@ -487,6 +498,40 @@ function component(width, height, color, x, y, type) {
 		}
 		return crash;
 	}
+	
+	
+	this.dribble =
+	function(otherobj) {
+		let myLeft = this.x;
+		let myRight = this.x + (this.width) -2;
+		let myTop = this.y + 5;
+		let myBottom = this.y + (this.height);
+		let otherLeft = otherobj.x;
+		let otherRight = otherobj.x + (otherobj.width);
+		let otherTop = otherobj.y;
+		let otherBottom = otherobj.y + (otherobj.height);
+		
+		
+		if ((myRight + 200 >= otherLeft) &&
+		(myRight < otherLeft + 5)) {
+			myBottom < otherTop || myTop > otherBottom
+			?  myTop = myTop
+			:   myBottom > otherTop
+			?	myTop--
+			:	myTop < otherBottom
+			?	myTop++
+			:	myTop;
+			
+		}
+	}
+
+		/**if ((myBottom < otherTop) ||
+		 (myTop > otherBottom) ||
+		 (myRight + 200 < otherLeft) {
+			myTop = myTop;
+		} else */
+		
+		
 }
 
 
@@ -523,7 +568,7 @@ function updateFinish() {
 		gameField.clear();
 		gameScore.text = "+ " + gameField.runNo;
 		gameScore.update();
-		gameField.canvas.style.backgroundImage = "url('spaceshipexplode.gif'), url(''), url('Gem Orange.png'), url(' Gem Green.png'), url('')";
+		gameField.canvas.style.backgroundImage = "url('gapYshipexplode.gif'), url(''), url('Gem Orange.png'), url(' Gem Green.png'), url('')";
 	    optionA.text = "Restart";
 	    optionC.text = "Home";
 	    showOptions();
@@ -558,7 +603,7 @@ const burnFuel = () => {
 			burningFuel = false;
 			countBy = 1;
 		   	obstacleSpeed = 2;
-		   	opponentSpeed = 50;
+		   	opponentSpeed = 0;
 		}
 	};
 	
@@ -574,7 +619,7 @@ const updateField = (timeStamp) => {
     fps = Math.round(1 / secondsPassed);
      
     
-	let x, height, gap, minHeight, maxHeight, minY, maxY, minGap, maxGap, minDelay, maxDelay;
+	let x, height, minHeight, maxHeight, minY, maxY, minGap, maxGap, minDelay, maxDelay;
 	for (i = 0; i < gameObstacle.length; i += 1) {
 		if (gamePiece.crashWith(gameObstacle[i])) {
 			//gameField.finish();
@@ -586,7 +631,7 @@ const updateField = (timeStamp) => {
 	
 	//CREATE OBSTACLES
 	if (gameField.frameNo  === 1 ) {
-		x = gameField.canvas.width;
+		x = 3240;
 		minDelay = 0;
 		maxDelay = 5;
 		delay =
@@ -611,12 +656,35 @@ const updateField = (timeStamp) => {
 		gameObstacle.push(new component(10, height , "yellow", x + delay, y + height + gap + height + gap + height + gap ));
 	
 
-		obstacleSave.push(id, gameObstacle)
+
+		gapY1 = y > 34 ? 0 : undefined;
+		gapY2 = y + height;
+		gapY3 = y + height + gap + height < gameField.canvas.height - 34 
+			? y + height + gap + height
+			: undefined;
+		gapY4 = 
+			y + height + gap + height + gap + height  < gameField.canvas.height - 34 
+			? y + height + gap + height + gap + height 
+			: undefined;
+
+		obstacleSave.push({
+			y: y,
+			x: x,
+			gap: gap,
+			gapY1: gapY1,
+			gapY2: gapY2,
+			gapY3: gapY3,
+			gapY4: gapY4
+		});
+
 		id++;
 		obsN++;
 	}
 
-	let aaa = false;
+
+	for(j = 0; j < obstacleSave.length; j++) {
+		obstacleSave[j].x+= (-1 * obstacleSpeed);
+	};
 
 	//MOVE OBSTACLES
 	for (i = 0; i < gameObstacle.length; i++) {
@@ -624,68 +692,96 @@ const updateField = (timeStamp) => {
 		gameObstacle[i].obsPos();
 		gameObstacle[i].update();
 		obsPosition = gameObstacle[i].x;
-
-		//ASSIGNING OBSTACLES PROPERTIES TO VARIABLES
-		// if(!obstacleSave.includes(id)) {
-		// 	console.log(obstacleSave)
-		// } else {
-		// 	console.log('none')
-		// }
-		
-	}
-
-	//MAKE OPPONENTS AVOID OBSTACLES
-	for (i = 0; i < opponent.length; i++) {
-		// if(gameObstacle[i] !== undefined) {
-		// 	oppX = opponent[i].x;
-		// 	oppY = opponent[i].y;
-		// 	oppH = opponent[i].height;
-		// 	oppW = opponent[i].width;
-		// 	obsX = gameObstacle[i].x;
-		// 	obsY = gameObstacle[i].y;
-		// 	obsH = gameObstacle[i].height;
-
-		// 	if(
-		// 		 (oppX + oppW < gameField.canvas.width && oppX + oppW + 100 >= obsX && obsX > oppX + oppW)
-		// 	) {
-		// 		console.log(i, ' run o')
-
-		// 	} else {
-		// 		console.log(1)
-		// 		// console.log("add: ", oppX + oppW, "field: ", gameField.canvas.width )
-		// 	}
-
-		// 	// console.log("obsX: ", gameObstacle[i].x, "No: ", i)
-		// } else {
-		// 	// console.log('wo joor')
-		// }
-	}
-
-
-	
-	
-    if(obsN <= 105) {
-      if( obsPosition  <= 200) {
-			gameField.frameNo  = 0;
-			obsPosition = 480;
-		
-	  };
 	};
-  //if(obsN == 16) {
-			//finishLine.speedX = -1;
-            //finishLine.obsPos();
-            //finishLine.update();
-        //console.log("e don happen");
-	//};
 	
+
 	//OPPONENTS UPDATE TO SCREEN
 	for (i = 0; i < opponents.length; i++) {
 		if(opponent[i] === undefined) {
 			opponent[i] = new component(
-				80, 32, opponents[i].images[0] , opponents[i].x , opponents[i].y, "image"
+				80, 32, opponents[i].sprite , opponents[i].x , opponents[i].y, "sprite"
 			);
-			// opponent[i].animate = opponents[i].animate;
 		} else {
+
+			//OBSTACLES
+			if(obsN <= 62) {
+		      	if( obsPosition  <= 2960) {
+					gameField.frameNo  = 0;
+					obsPosition = 3240;
+
+				}
+				obstacleSpeed = obsN === 9 ? 2 : obstacleSpeed;
+			};
+
+
+			//OPPONENTS DRIBBLE
+			for(j = 0; j < obstacleSave.length; j++) {
+
+				if (opponent[i].x + 345 >= obstacleSave[j].x && opponent[i].x < obstacleSave[j].x + 15) {
+					let oppY = opponent[i].y ;
+					let oppYH = opponent[i].y + opponent[i].height;
+					gapCenter = (obstacleSave[j].gap - opponent[i].height) / 2 ;
+
+					let gapCenter3 = obstacleSave[j].gapY3 + obstacleSave[j].gap > gameField.canvas.height
+						? Math.floor( 
+							(gameField.canvas.height - obstacleSave[j].gapY3 - opponent[i].height) / 2
+						) : (obstacleSave[j].gap - opponent[i].height) / 2 ;
+
+					let gapCenter4 = obstacleSave[j].gapY4 + obstacleSave[j].gap > gameField.canvas.height
+						? Math.floor( 
+							(gameField.canvas.height - obstacleSave[j].gapY4 - opponent[i].height) / 2
+						) : (obstacleSave[j].gap - opponent[i].height) / 2 ;
+						
+										
+					if(
+						(oppY > obstacleSave[j].gapY1 && oppYH < obstacleSave[j].y)
+						|| (oppY > obstacleSave[j].gapY2 && oppYH < obstacleSave[j].gapY2 + obstacleSave[j].gap)
+						|| (oppY > obstacleSave[j].gapY3 && oppYH < obstacleSave[j].gapY3 + obstacleSave[j].gap)
+						|| (oppY > obstacleSave[j].gapY4 && oppYH < obstacleSave[j].gapY4 + obstacleSave[j].gap)
+					) {
+						opponent[i].escapeGap = oppY;
+					} else {
+						let a = obstacleSave[j].gapY1 === undefined ? 1000 :  obstacleSave[j].y < oppYH ? oppYH - obstacleSave[j].y : oppY;
+						
+						let b = obstacleSave[j].gapY2 + obstacleSave[j].gap < oppYH 
+							? oppYH - (obstacleSave[j].gapY2 + obstacleSave[j].gap ):  obstacleSave[j].gapY2 > oppY
+							? obstacleSave[j].gapY2 - oppY
+							: oppY;
+						
+						let c = obstacleSave[j].gapY3 === undefined ? 1000 : obstacleSave[j].gapY3 + obstacleSave[j].gap < oppYH 
+							? oppYH - (obstacleSave[j].gapY3 + obstacleSave[j].gap ):  obstacleSave[j].gapY3 > oppY
+							? obstacleSave[j].gapY3 - oppY
+							: oppY;
+						
+						let d = obstacleSave[j].gapY4 === undefined ? 1000 :  obstacleSave[j].gapY4 > oppY
+							? obstacleSave[j].gapY4 - oppY
+							: oppY;
+						
+						let min = a < b && a < c && a < d ? a : b < a && b < c && b < d ? b : c < a && c < b && c < d ? c : d < a && d < b && d < c ? d : 0;
+						
+						opponent[i].escapeGap = min === a 
+							? obstacleSave[j].gapY1  + gapCenter
+							: min === b 
+							? obstacleSave[j].gapY2 + gapCenter
+							: min === c 
+							? obstacleSave[j].gapY3 + gapCenter3 
+							: min === d 
+							? obstacleSave[j].gapY4 + gapCenter4 
+							: oppY;
+					};
+
+					if(oppY > opponent[i].escapeGap) {
+				  		opponent[i].y--;
+				  	} else if(oppY < opponent[i].escapeGap) {
+				  		opponent[i].y++;
+				  	} else {
+				  		opponent[i].y;
+				  	}
+					
+				}
+
+			}
+
 
 			//RANDOM ACCELERATIONS
 			opponents[i].accelerateTime++;
@@ -717,7 +813,6 @@ const updateField = (timeStamp) => {
 
 				opponents[i].accelerateEndTime = 
 					Math.floor(Math.random() * (maxAET - minAET + 1) + minAET);
-
 					opponents[i].checkAccelerate = true;
 			} else if(
 				opponents[i].checkAccelerate && 
@@ -766,8 +861,18 @@ const updateField = (timeStamp) => {
 
 	};
 
+
+	//OPPONENTS DRIBBLE
+	// for (i = 0; i < opponent.length; i++) {
+
+	// 	opponent[i].y > opponent[i].escapeGap
+	//   		? opponent[i].y-- 
+	//   		: opponent[i].y < opponent[i].escapeGap 
+	//   		? opponent[i].y++ : opponent[i].y;
+	// }
+
 	
-    animateOpponents();
+    // animateOpponents();
     
     gamePiece.namePlayer("eniola", positionColor[playerPositionNo]);
     gamePiece.disableEscapeScreen();
@@ -783,9 +888,9 @@ const updateField = (timeStamp) => {
 
 
 
-    if(gameField.canvas.width < 490 || gameField.canvas.height < 280 ) {
-    	gameField.clearZoomInterval();
-  	};
+   //  if(gameField.canvas.width < 490 || gameField.canvas.height < 280 ) {
+   //  	gameField.clearZoomInterval();
+  	// };
 
   	burnFuel();
 
@@ -898,7 +1003,7 @@ const moveDown = () =>
 
 const moveLeft = () => {
 	obstacleSpeed = -1;
-	opponentSpeed = 250;
+	opponentSpeed = 200;
 };
 
 const clearMoveLeft = () => {
@@ -930,12 +1035,12 @@ const clearMoveRight = () => {
 	burnTrigger = false;
 	countBy = 1;
    	obstacleSpeed = 2;
-   	opponentSpeed = 50;
+   	opponentSpeed = 0;
 };
 
 const clearMove = () => {
 	obstacleSpeed = 2;
-	opponentSpeed = 50;
+	opponentSpeed = 0;
     gamePiece.speedX = 0;
     gamePiece.speedY = 0;
 };
