@@ -50,9 +50,12 @@ if(typeof(Storage)!=="undefined"){
  
 //PRELOAD GAME ASSETS
 preload = function() {
-	img1 = 'sprites/star-bug.png';
-	img2 = 'sprites/purple-bug.png';
-	img3 = 'sprites/flappy-box.png' ;
+	img1 =  new Image();
+	img1.src = 'sprites/star-bug.png';
+	img2 =  new Image();
+	img2.src = 'sprites/purple-bug.png';
+	img3 =  new Image();
+	img3.src = 'sprites/flappy-box.png' ;
 
 
 	startGame();
@@ -294,8 +297,7 @@ function component(width, height, color, x, y, type) {
 	this.type = type;
 	this.color = color;
 	if (type === "image" || type === "sprite") {
-        this.image = new Image();
-        this.image.src = this.color;
+        this.image = this.color;
     }
 	this.width = width;
 	this.height = height;
