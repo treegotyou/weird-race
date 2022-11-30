@@ -13,7 +13,6 @@ let finishLine;
 let obstacleSpeed = 2, intervalRate = 250 / obstacleSpeed;
 let speedInterval;
 let obsPosition;
-let countBy = 1;
 let opponents = [], opponent = [], opponentSpeed = 0, dodgeSpeed = 0, opponentAvatar = [],
 	opp, oppX, oppY, oppW, oppH;
 let playerName;
@@ -88,11 +87,12 @@ function loadOpponents() {
 			Math.floor(Math.random() * (name20 - name0 + 1) + name0);
 		opponents[i] = {
 			y: y,
-			sprite: avatar[1],
-			limit: avatar[N].length,
+			sprite: avatar[N],
 			name: names[name],
 			x: x,
-			count: 0,
+			totalFrames: N === 2 ? 12 : 15,
+			currentFrame: 0,
+			countBy: 1,
 			accelerateStartTime: 200,
 			accelerateEndTime: 600,
 			accelerateTime: 0,
@@ -102,10 +102,7 @@ function loadOpponents() {
 			positionPoint: 0,
 			position: i,
 			timeToEscape: 0,
-			escapeGap: y,
-			animate: () => {
-
-			}
+			escapeGap: y
 		};
 		x += 120;
 		names.splice(name, 1)
@@ -140,7 +137,7 @@ const animateOpponents = () => {
 
 //ASSIGN NEW COMPONENTS TO VARIABLES AND CALL LOADINDEX()
 startGame = function() {
-	gamePiece = new component(80, 32, img1 , 10, 119, "sprite");
+	gamePiece = new component(80, 32, img1 , 10, 119, "sprite", 15, 0, 1);
 	gameScore = new component("20px", "Consolas", "black", 210, 100, "text");
 	bar = new component(370, 5, "white", 55, 40);
 	progress = new component(300, 1, "", 60, 42);
@@ -293,9 +290,22 @@ const gameField = {
 
 }
 
-function component(width, height, color, x, y, type) {
+function component(
+	width, 
+	height, 
+	color, 
+	x, 
+	y, 
+	type, 
+	totalFrames, 
+	currentFrame,
+	countBy
+	) {
 	this.type = type;
 	this.color = color;
+	this.totalFrames = totalFrames;
+	this.currentFrame = currentFrame;
+	this.countBy = countBy;
 	if (type === "image" || type === "sprite") {
         this.image = this.color;
     }
@@ -314,10 +324,8 @@ function component(width, height, color, x, y, type) {
              this.y,
              this.width, this.height);
         } else if (this.type === "sprite") {
-			numColumns = this.image.src == img3 ? 12 : 15;
-			frameWidth = this.image.naturalWidth / numColumns;
-			let column = currentFrame % numColumns;
-			// console.log(this.image)
+			frameWidth = this.image.naturalWidth / this.totalFrames;
+			let column = this.currentFrame % this.totalFrames;
 
         	ctx.drawImage(
         		this.image,
@@ -391,10 +399,10 @@ function component(width, height, color, x, y, type) {
 	
 	
 	this.animate = function() {
-		currentFrame+= countBy;
+		this.currentFrame+= this.countBy;
 
-		if(currentFrame > 11) {
-			currentFrame = 0
+		if(this.currentFrame >= this.totalFrames) {
+			this.currentFrame = 0;
 		};
 	}
 
@@ -701,7 +709,15 @@ const updateField = (timeStamp) => {
 	for (i = 0; i < opponents.length; i++) {
 		if(opponent[i] === undefined) {
 			opponent[i] = new component(
-				80, 32, opponents[i].sprite , opponents[i].x , opponents[i].y, "sprite"
+				80, 
+				32, 
+				opponents[i].sprite , 
+				opponents[i].x , 
+				opponents[i].y, 
+				"sprite", 
+				opponents[i].totalFrames,
+				opponents[i].currentFrame,
+				opponents[i].countBy
 			);
 		} else {
 
@@ -815,6 +831,7 @@ const updateField = (timeStamp) => {
 
 				opponents[i].accelerateEndTime = 
 					Math.floor(Math.random() * (maxAET - minAET + 1) + minAET);
+					opponent[i].countBy = 2;
 					opponents[i].checkAccelerate = true;
 			} else if(
 				opponents[i].checkAccelerate && 
@@ -822,6 +839,7 @@ const updateField = (timeStamp) => {
 			) {
 				opponents[i].accelerateValue = 
 					Math.floor(Math.random() * (maxDV - minDV + 1) + minDV);
+				opponent[i].countBy = 1;
 				opponents[i].accelerateTime = 0;
 				opponents[i].checkAccelerate = false;
 			}
@@ -829,6 +847,7 @@ const updateField = (timeStamp) => {
 
 			opponent[i].namePlayer(opponents[i].name, positionColor[opp.position]);
 			opponent[i].disableEscapeScreen();
+			opponent[i].animate();
 			opponent[i].move(opponents[i].accelerateValue);
 			opponent[i].newPos(secondsPassed);
 			opponent[i].update();
@@ -1021,7 +1040,7 @@ const clearMoveLeft = () => {
 const moveRight = () => {
     burningFuel = true;
     burnTrigger = true;
-    countBy = 2;
+    gamePiece.countBy = 2;
     obstacleSpeed = 6;
     opponentSpeed = -100;
 
@@ -1035,7 +1054,7 @@ const moveRight = () => {
 const clearMoveRight = () => {
 	burningFuel = false;
 	burnTrigger = false;
-	countBy = 1;
+	gamePiece.countBy = 1;
    	obstacleSpeed = 2;
    	opponentSpeed = 0;
 };
