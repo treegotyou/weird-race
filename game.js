@@ -1,9 +1,10 @@
 let gamePiece, fuel = 300, burningFuel = false, burnTrigger = false;
 let numColumns, frameWidth, currentFrame = 0;
-let gameObstacle = [], obstacleSave = [], obsX, obsY, obsH, obsN= 0, id = 0;
+let gameObstacle = [], obstacleSave = [], obsX, obsY, obsH, obsN= 0, id = 0, obsStartPoint;
 let gameScore, pointTotal, highScore, localStore;
 let paused;
-let optionA, optionB, optionC;
+let fourOptions = true, twoOptions = false;
+let choosedDefault = false, optionA, optionB, optionC, optionD, starLeft, starRight;
 const up = document.getElementById("up"), down = document.getElementById("down"), 
     left = document.getElementById("left"), right = document.getElementById("right"), 
     center = document.getElementById("center");
@@ -18,33 +19,38 @@ let opponents = [], opponent = [], opponentSpeed = 0, dodgeSpeed = 0, opponentAv
 let playerName;
 let position = 0, positionDisplay, playerPosition, playerPositionNo,
 	allPositions = [90], checkPosition = false, positionChecked = false,
-	positionColor = [
+	/** positionColor = [
 	'', 'violet', 'teal','green', 'turquoise',
 	'olive', 'lime', 'peach', 'maroon', 'pink',
 	'silver', 'black', 'white', 'purple', 'magenta',
 	'blue', 'yellow', 'orange', 'red'
-	]; //ADD 'cyan' IF YOU EVER CHANGE BACKGROUND COLOR
+	]; //ADD 'cyan' IF YOU EVER CHANGE BACKGROUND COLOR */
+	positionColor = [' ', 'violet', 'indigo', 'blue', 'green', 'yellow', 'orange', 'red'];
+	
 let avatar, pickedCount= 19;
-let bar, progress;
+let bar, progress, readingProgress = false;
 let gap, gapY1, gapY2, gapY3, gapY4, gapCenter;
+let indexAnimate = true, fieldAnimate = false;
+let loadBar, loadProgress;
+let loading = true, oppLoad = false;
 
 
 
-//SAVE GAME SCORES TO LOCAL-STORAGE
-if(typeof(Storage)!=="undefined"){
-	 if(localStorage.points) {
-         localStore = JSON.parse(localStorage.getItem("points") );  
-       } else {
-        localStore = 0;
-     };
-     if(localStorage.score) {
-     	highScore = JSON.parse(localStorage.getItem("score") );
-     } else {
-     	highScore = 0;
-     };
-   }else {
-        alert("localStorage not available, change browser to make game accessible game offline");
- };
+// //SAVE GAME SCORES TO LOCAL-STORAGE
+// if(typeof(Storage)!=="undefined"){
+// 	 if(localStorage.points) {
+//          localStore = JSON.parse(localStorage.getItem("points") );  
+//        } else {
+//         localStore = 0;
+//      };
+//      if(localStorage.score) {
+//      	highScore = JSON.parse(localStorage.getItem("score") );
+//      } else {
+//      	highScore = 0;
+//      };
+//    }else {
+//         alert("localStorage not available, change browser to make game accessible game offline");
+//  };
 
  
 //PRELOAD GAME ASSETS
@@ -76,7 +82,7 @@ function loadOpponents() {
 		"file-funn", "alayeTosheGogo", "glock-9", "pablo", "nathaniel"
 	];
 	
-	for (i = 0; i < 17; i ++) {
+	for (i = 0; i < 6; i ++) {
 		const name0 = 0;
 		const name20 = pickedCount;
 		let y = 
@@ -101,8 +107,9 @@ function loadOpponents() {
 			checkDetect: false,
 			positionPoint: 0,
 			position: i,
-			timeToEscape: 0,
-			escapeGap: y
+			escapeGap: y,
+			checkGapDifference: false,
+			gapDifference: 0
 		};
 		x += 120;
 		names.splice(name, 1)
@@ -110,47 +117,27 @@ function loadOpponents() {
 	};
 };
 
-
-//ANIMATE OPPONENTS
-const animateOpponents = () => {
-	
-	for (i = 0; i < opponent.length; i++) {
-
-		if(opponents[i].checkAccelerate) {
-			opponent[i].image.src = opponents[i].images[opponents[i].count];
-			opponents[i].count+= 2;
-
-			if(opponents[i].count + 1 >= opponents[i].limit) {
-				opponents[i].count = 0;
-			};
-		} else {
-			opponent[i].image.src = opponents[i].images[opponents[i].count];
-			opponents[i].count++;
-
-			if(opponents[i].count === opponents[i].limit) {
-				opponents[i].count = 0;
-			};
-		};
-	};
-};
-
-
 //ASSIGN NEW COMPONENTS TO VARIABLES AND CALL LOADINDEX()
 startGame = function() {
-	gamePiece = new component(80, 32, img1 , 10, 119, "sprite", 15, 0, 1);
+	loadBar = new component(465, 10, "white", 110, 135);
+	loadProgress = new component(0, 10, "blue", 110, 135);
+	gamePiece = new component(80, 32, img1 , 50, 119, "sprite", 15, 0, 1, 'player');
 	gameScore = new component("20px", "Consolas", "black", 210, 100, "text");
 	bar = new component(370, 5, "white", 55, 40);
 	progress = new component(300, 1, "", 60, 42);
 	finishLine =  new component(20, 270, "blue", 19330, 0);//x is ( (480 - 200) * obsN ) + 480 + (10 * obsN)
 	playerName = new component("17px", "Consolas", 'black' , 0, 0, "text");
-	positionDisplay = new component("20px", "Consolas", "white", 210, 40, "text");
-    points = new component("20px", "Consolas", "black", 70, 28, "text");
+	// positionDisplay = new component("20px", "Consolas", "white", 210, 40, "text");
+    // points = new component("20px", "Consolas", "black", 70, 28, "text");
     playerPosition = new component("20px", "Consolas", "red", 70, 28, "text");
     score = new component("20px", "Consolas", "white", 270, 28, "text");
     paused = new component(105, 70, "play.png", 180, 90, "image");
-    optionA = new component("35px", "Cursive", "black", 133, 152, "text");
-    optionB = new component("35px", "Cursive", "black", 173, 200, "text");
-    optionC = new component("35px", "Cursive", "black", 193, 248, "text");
+    optionA = new component("25px", "monospace", "black", '', 120, "option");
+    optionB = new component("25px", "monospace", "black", '', 155, "option");
+    optionC = new component("25px", "monospace", "black", '', 190, "option");
+	optionD = new component("25px", "monospace", "black", '', 225, "option");
+	starLeft = new component("25px", "monospace", "black", 0, 0, "text");
+	starRight = new component("25px", "monospace", "black", 0, 0, "text");
     gameField.loadIndex();
 }
 
@@ -166,31 +153,30 @@ const gameField = {
 	this.context =
 	this.canvas.getContext("2d");
 	this.frameNo = 0;
-	updateIndex();
+	obsStartPoint = this.canvas.width;
+	window.requestAnimationFrame(updateIndex);
 	startClick();
 	document.getElementById("canvas"). appendChild(this.canvas);
      },
 
 	start : function() {
+		gameField.reset();
+		obstacleSpeed = 300;
+		indexAnimate = false;
+		obsStartPoint = 2480;
+		fieldAnimate = true;
 		loadOpponents();
 		// this.setZoomSize();
 		// this.zoomInterval = 
 		// 	setInterval(zoom, 8);
-		obstacleSpeed = 100;
 		endClick();
-		setTimeout(startControl, 1500);
+		startControl();
 		center.ondblclick = pause;
-		this.runNo = 0;
-		this.runInterval =
-		  setInterval(run, 2500);
         window.requestAnimationFrame(updateField);
 	},
 	
 	finish: function() {
-		gameField.canvas.style.backgroundImage =
- "url(' '), url('gameover.png '), url('Gem Orange.png'), url('Gem Green.png '), url(' ')";
-       navigator.vibrate(80);
-       
+	   navigator.vibrate(80);
 	   gamePiece.x -= 3;
 	   gamePiece.explode();
 		updatePoints();
@@ -199,67 +185,17 @@ const gameField = {
 		endControl();
 		center.ondblclick = " ";
 	   setTimeout(updateFinish, 40);
-      },
+	},
       
-    toggleFullScreen : function() {
-        const game = document.getElementById("game");
-        if (!document.fullscreenElement){
-           game.requestFullscreen();           
-           game.removeChild(document.getElementById("screen"));
-           game.removeChild(document.getElementById("title"));
-           game.removeChild(document.getElementById("interact"));
-           game.appendChild(gameField.canvas);
-           this.canvas.style.minHeight = "100%";
-           this.canvas.style.height = "100%";
-           this.canvas.style.minWidth = "100%";
-           this.canvas.style.width = "100%";
-           this.canvas.height = 480;
-           this.canvas.width = 270;
-           localStorage.setItem("oldX", JSON.stringify(this.x) );
-           localStorage.setItem("oldY", JSON.stringify(this.y) );
-           
-           this.x = localY;
-           this.y = localX;
-           
-          
-           gamePiece.rotateUpdate();
-           
-           this.clearOption();
-           optionA.choose();
-           optionB.text = "Exit Screen";
-           optionB.unChoose();         
-           showOptions();
-           
-          } else {
-           document.exitFullscreen();
-           this.clearOption();
-           optionA.choose();
-           optionB.text = "Full Screen";
-           optionB.unChoose();
-           showOptions();
-           
-         };
-    },
-	
 	reset : function() {
-		gamePiece.x = 10;
+		gamePiece.x = 20; 
 		gamePiece.y = 120;
-		gamePiece2.x = 160;
-		gamePiece2.y = 100;
-		gamePiece.image.src = "airship.png";
-		gamePiece.width = 80;
-		gamePiece.height = 32;
-		gameObstacle= [];
-		localStore = JSON.parse(localStorage.getItem("points") );
-		highScore = JSON.parse(localStorage.getItem("score") );
+		gameObstacle = [];
+		obstacleSave = [];
 	},
 	
 	clear : function() {
 		this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-	},
-	
-	clearOption : function() {
-		this.context.clearRect(130, 115, 310, 137);
 	},
 	
 	stop : function() {
@@ -299,8 +235,10 @@ function component(
 	type, 
 	totalFrames, 
 	currentFrame,
-	countBy
+	countBy,
+	name
 	) {
+	this.name = name;
 	this.type = type;
 	this.color = color;
 	this.totalFrames = totalFrames;
@@ -342,24 +280,16 @@ function component(
 			ctx.font = this.width + " " + this.height;
 			ctx.fillStyle = this.color;
 			ctx.fillText(this.text, this.x, this.y);
+		  } else if (this.type == "option") {
+			ctx.font = this.width + " " + this.height;
+			ctx.fillStyle = this.color;
+			let width = ctx.measureText(this.text).width;
+			ctx.fillText(this.text,(gameField.canvas.width - width) / 2, this.y);
 		  } else {
 			ctx.fillStyle = this.color;
 			ctx.fillRect(this.x, this.y, this.width, this.height);
 	  }
 	}
-	let rotated = false;
-	this.rotateUpdate = function() {
-		if(rotated == !true) {
-			ctx.translate( this.x+this.width/2, this.y+this.height/2 );
-           ctx.rotate( Math.PI/2 );
-           ctx.translate( -this.x-this.width/2, -this.y-this.height/2 );
-           rotated = true;
-           console.log("1", rotated);
-        } else if (rotated == true){
-        	this.rotateUpdate = this.update;
-             console.log("2", rotated);
-        };
-    }
     
 
     //NEEDS FIXING
@@ -371,13 +301,17 @@ function component(
         };
     }
     
-    this.namePlayer = function(name, color) {
+    this.namePlayer = function(name, color, size) {
     	playerName.text = name;
-        if(name.length == 1) {
+        /**         if(name.length == 1) {
         	playerName.x = this.x + 42;
         } else if(name.length > 1){
         	playerName.x = this.x + 42 - ((name.length - 1) * 5);
-        };
+        }; */
+        let width = ctx.measureText(playerName.text).width;
+        playerName.width = `${25 + size}px`;
+        playerName.x =
+        	(this.x + (this.width/2)) - (width/2) + 5;
         playerName.y = this.y - 3;
         playerName.color = color;
         playerPosition.color = color;
@@ -392,10 +326,6 @@ function component(
            positionDisplay.text = "No " + position + ": " + name;
         };
     }
-
-    // this.updateColor = function() {
-    // 	this.playerName.color = positionColor[this.position];
-    // }
 	
 	
 	this.animate = function() {
@@ -412,14 +342,93 @@ function component(
 		this.width = 190;
 		this.height = 100;
 	}
+
+	this.dribble = function() {
+		//OPPONENTS DODGE OBSTACLES
+		for(j = 0; j < obstacleSave.length; j++) {
+			// console.log(3, obstacleSave.length, obstacleSave[j].x)
+			if (this.x + 345 >= obstacleSave[j].x && this.x < obstacleSave[j].x + 15) {
+				let oppY = this.y ;
+				let oppYH = this.y + this.height;
+				gapCenter = (obstacleSave[j].gap - this.height) / 2 ;
+
+				let gapCenter3 = obstacleSave[j].gapY3 + obstacleSave[j].gap > gameField.canvas.height
+					? Math.floor( 
+						(gameField.canvas.height - obstacleSave[j].gapY3 - this.height) / 2
+					) : (obstacleSave[j].gap - this.height) / 2 ;
+
+				let gapCenter4 = obstacleSave[j].gapY4 + obstacleSave[j].gap > gameField.canvas.height
+					? Math.floor( 
+						(gameField.canvas.height - obstacleSave[j].gapY4 - this.height) / 2
+					) : (obstacleSave[j].gap - this.height) / 2 ;
+					
+									
+				if(
+					(oppY > obstacleSave[j].gapY1 && oppYH < obstacleSave[j].y)
+					|| (oppY > obstacleSave[j].gapY2 && oppYH < obstacleSave[j].gapY2 + obstacleSave[j].gap)
+					|| (oppY > obstacleSave[j].gapY3 && oppYH < obstacleSave[j].gapY3 + obstacleSave[j].gap)
+					|| (oppY > obstacleSave[j].gapY4 && oppYH < obstacleSave[j].gapY4 + obstacleSave[j].gap)
+				) {
+					this.escapeGap = oppY;
+				} else {
+					let a = obstacleSave[j].gapY1 === undefined ? 1000 :  obstacleSave[j].y < oppYH ? oppYH - obstacleSave[j].y : oppY;
+					
+					let b = obstacleSave[j].gapY2 + obstacleSave[j].gap < oppYH 
+						? oppYH - (obstacleSave[j].gapY2 + obstacleSave[j].gap ):  obstacleSave[j].gapY2 > oppY
+						? obstacleSave[j].gapY2 - oppY
+						: oppY;
+					
+					let c = obstacleSave[j].gapY3 === undefined ? 1000 : obstacleSave[j].gapY3 + obstacleSave[j].gap < oppYH 
+						? oppYH - (obstacleSave[j].gapY3 + obstacleSave[j].gap ):  obstacleSave[j].gapY3 > oppY
+						? obstacleSave[j].gapY3 - oppY
+						: oppY;
+					
+					let d = obstacleSave[j].gapY4 === undefined ? 1000 :  obstacleSave[j].gapY4 > oppY
+						? obstacleSave[j].gapY4 - oppY
+						: oppY;
+					
+					let min = a < b && a < c && a < d 
+						? a : b < a && b < c && b < d 
+						? b : c < a && c < b && c < d 
+						? c : d < a && d < b && d < c 
+						? d : 0;
+					
+					this.escapeGap = min === a 
+						? obstacleSave[j].gapY1
+						: min === b 
+						? obstacleSave[j].gapY2
+						: min === c 
+						? obstacleSave[j].gapY3
+						: min === d 
+						? obstacleSave[j].gapY4
+						: oppY;
+				};
+
+				if(oppY > this.escapeGap) {
+					  this.y--;
+				  } else if(oppY < this.escapeGap) {
+					  this.y++;
+				  } else {
+					  this.y;
+				  }
+				
+			}
+
+		}
+	}
 	
 	this.choose = function() {
-		this.width = "50px";
+		let width = ctx.measureText(this.text).width;
+		starLeft.text = starRight.text = '*';
+		starLeft.y = starRight.y = this.y + 2.5;
+		starLeft.x = ((gameField.canvas.width - width) / 2) - 70;
+		starRight.x = gameField.canvas.width - ((gameField.canvas.width - width) / 2) + 70;
+		this.width = "35px";
 		this.color = "white";
 	}
 	
 	this.unChoose = function() {
-		this.width = "35px";
+		this.width = "25px";
 		this.color = "black";
 	}
 	
@@ -508,60 +517,70 @@ function component(
 		}
 		return crash;
 	}
+
 	
-	
-	this.dribble =
-	function(otherobj) {
-		let myLeft = this.x;
-		let myRight = this.x + (this.width) -2;
-		let myTop = this.y + 5;
-		let myBottom = this.y + (this.height);
-		let otherLeft = otherobj.x;
-		let otherRight = otherobj.x + (otherobj.width);
-		let otherTop = otherobj.y;
-		let otherBottom = otherobj.y + (otherobj.height);
+	// this.dribble =
+	// function(otherobj) {
+	// 	let myLeft = this.x;
+	// 	let myRight = this.x + (this.width) -2;
+	// 	let myTop = this.y + 5;
+	// 	let myBottom = this.y + (this.height);
+	// 	let otherLeft = otherobj.x;
+	// 	let otherRight = otherobj.x + (otherobj.width);
+	// 	let otherTop = otherobj.y;
+	// 	let otherBottom = otherobj.y + (otherobj.height);
 		
 		
-		if ((myRight + 200 >= otherLeft) &&
-		(myRight < otherLeft + 5)) {
-			myBottom < otherTop || myTop > otherBottom
-			?  myTop = myTop
-			:   myBottom > otherTop
-			?	myTop--
-			:	myTop < otherBottom
-			?	myTop++
-			:	myTop;
+	// 	if ((myRight + 200 >= otherLeft) &&
+	// 	(myRight < otherLeft + 5)) {
+	// 		myBottom < otherTop || myTop > otherBottom
+	// 		?  myTop = myTop
+	// 		:   myBottom > otherTop
+	// 		?	myTop--
+	// 		:	myTop < otherBottom
+	// 		?	myTop++
+	// 		:	myTop;
 			
-		}
-	}
+	// 	}
+	// }
 
-		/**if ((myBottom < otherTop) ||
-		 (myTop > otherBottom) ||
-		 (myRight + 200 < otherLeft) {
-			myTop = myTop;
-		} else */
+	// 	/**if ((myBottom < otherTop) ||
+	// 	 (myTop > otherBottom) ||
+	// 	 (myRight + 200 < otherLeft) {
+	// 		myTop = myTop;
+	// 	} else */
 		
 		
 }
 
 
 
-function updateIndex() {
-	optionA.text = "Play Game";
-	if (!document.fullscreenElement) {
-	    optionB.text = "Full Screen";
-	} else {
-		optionB.text = "Exit Screen";
-	}
-	optionC.text = "Exit";
-	optionA.choose();
-	showOptions();
-}
+
 
 function showOptions() {
-	optionA.update();
-	optionB.update();
-	optionC.update();
+	if(fourOptions) {
+		optionA.text = "Play Game";
+		optionB.text = "View Portfolio";
+		optionC.text = "Credits";
+		optionD.text = "Buy My Cat A Treat";
+		optionA.update();
+		optionB.update();
+		optionC.update();
+		optionD.update();
+	} else if (twoOptions) {
+		optionC.text = "Change Name";
+		optionD.text = "Exit";
+
+		if(!choosedDefault) {
+			optionC.choose();
+			choosedDefault = true;
+		}
+
+		optionC.update();
+		optionD.update();
+	}
+	starLeft.update();
+	starRight.update();
 }
 
 function updatePoints() {
@@ -578,7 +597,6 @@ function updateFinish() {
 		gameField.clear();
 		gameScore.text = "+ " + gameField.runNo;
 		gameScore.update();
-		gameField.canvas.style.backgroundImage = "url('gapYshipexplode.gif'), url(''), url('Gem Orange.png'), url(' Gem Green.png'), url('')";
 	    optionA.text = "Restart";
 	    optionC.text = "Home";
 	    showOptions();
@@ -586,11 +604,6 @@ function updateFinish() {
 	}, 440);
 }
 
-
-
-function run() {
-	gameField.runNo += 10;
-};
 
 const zoom = () => {
 	gameField.canvas.width-= 10;
@@ -611,12 +624,171 @@ const burnFuel = () => {
 		fuel--;
 		if(fuel === 0) {
 			burningFuel = false;
-			countBy = 1;
+			gamePiece.countBy = 1;
 		   	obstacleSpeed = 2;
 		   	opponentSpeed = 0;
 		}
 	};
 	
+}
+
+const createObstacles = () => {
+		//CREATE OBSTACLES
+		let x, height, minHeight, maxHeight, minY, maxY, minGap, maxGap, minDelay, maxDelay;
+		if (gameField.frameNo  === 1 ) {
+			x = obsStartPoint;
+			minDelay = 0;
+			maxDelay = 5;
+			delay =
+			Math.floor(Math.random() * (maxDelay - minDelay + 1) + minDelay);
+			minHeight = 37.5;
+			maxHeight = 75;
+			height =
+			Math.floor(Math.random() * (maxHeight - minHeight + 1) + minHeight);
+			minY = 0;
+			maxY = 40;
+			y =
+			Math.floor(Math.random() * (maxY - minY + 1) + minY);
+			minGap = 35;
+			maxGap = 151;
+			gap =
+			Math.floor(Math.random() * (maxGap - minGap + 1) + minGap);
+			
+			
+			if(obsN < 59) {
+			gameObstacle.push(new component(10, height, "yellow", x + delay, y));
+			gameObstacle.push(new component(10, height, "yellow", x + delay, y + height + gap));
+			gameObstacle.push(new component(10, height , "yellow", x + delay, y + height + gap + height + gap));
+			gameObstacle.push(new component(10, height , "yellow", x + delay, y + height + gap + height + gap + height + gap ));
+			} else {
+				gameObstacle.push(new component(10, 10, "green", x + delay, 0));
+				gameObstacle.push(new component(10, 10, "green", x + delay, gameField.canvas.height - 10));
+			};
+	
+	
+			gapY1 = y > 34 ? 0 : undefined;
+			gapY2 = y + height;
+			gapY3 = y + height + gap + height < gameField.canvas.height - 34 
+				? y + height + gap + height
+				: undefined;
+			gapY4 = 
+				y + height + gap + height + gap + height  < gameField.canvas.height - 34 
+				? y + height + gap + height + gap + height 
+				: undefined;
+	
+			obstacleSave.push({
+				y: y,
+				x: x,
+				gap: gap,
+				gapY1: gapY1,
+				gapY2: gapY2,
+				gapY3: gapY3,
+				gapY4: gapY4
+			});
+	
+			id++;
+			obsN++;
+		}
+}
+
+const moveObstacles = () => {
+	//MOVE OBSTACLES
+	for (i = 0; i < gameObstacle.length; i++) {
+		gameObstacle[i].speedX = -1;
+		gameObstacle[i].obsPos();
+		gameObstacle[i].update();
+		obsPosition = gameObstacle[i].x;
+		
+		if (fieldAnimate && gamePiece.crashWith(gameObstacle[i])) {
+			if(!burningFuel) {
+				obstacleSpeed = 0;
+				opponentSpeed = 100;  
+			} else {
+				obstacleSpeed = -2;
+				opponentSpeed = 200;  
+				setTimeout(() => burningFuel = false, 300);
+			}
+			
+		} 
+			
+		
+		/** fieldAnimate ? gamePiece.crashWith(gameObstacle[i]) : null; */
+		
+		/** for(j = 0; j < opponents.length; j++) {
+			if(opponent[j].crashWith(gameObstacle[i])) {
+				let newX = opponent[j].x - 20;
+				let newY = opponent[j].y -= 5;
+				opponent[j].x = newX;
+				opponent[j].y = newY;
+				
+			}
+		}  */
+	};
+}
+
+const updateIndex = () => {
+	gameField.clear();
+	gameField.frameNo += 1;
+	gamePiece.countBy = 2;
+	obstacleSpeed = 6;
+	createObstacles();
+	moveObstacles();
+
+	//OBSTACLES
+	if( obsPosition  <= obsStartPoint - 280) {
+		gameField.frameNo  = 0;
+		obsPosition = obsStartPoint;
+	};
+
+	for(j = 0; j < obstacleSave.length; j++) {
+		obstacleSave[j].x+= (-1 * obstacleSpeed);
+	};
+	gamePiece.dribble();
+    gamePiece.disableEscapeScreen();
+    gamePiece.animate();
+    gamePiece.newPos(secondsPassed);
+    gamePiece.update();
+
+	showOptions();
+	if(!choosedDefault) {
+		optionA.choose();
+		choosedDefault = true;
+	}
+	
+	
+	indexAnimate ? window.requestAnimationFrame(updateIndex) 
+		: null;
+}
+
+const miniOptions = () => {
+	optionA.unChoose();
+	choosedDefault = false;
+	fourOptions = false;
+	twoOptions = true;
+}
+
+const startingField = () => {
+	loadBar.update();
+	loadProgress.width = obstacleSave[0].x >= gameField.canvas.width && loadProgress.width <= loadBar.width
+	? loadProgress.width += 2.85 : loadBar.width + 1;
+	loadProgress.update();
+	showOptions();
+	miniOptions();
+}
+
+const loadOpp = () => {
+	loadOpponents();
+	gamePiece.countBy = 1;
+	oppLoad = true;
+}
+
+const startField = () => {
+	loading = false;
+	obstacleSpeed = 2;
+	endClick();
+	startControl();
+	center.ondblclick = pause;
+	console.log(9)
 }
 
 
@@ -628,82 +800,38 @@ const updateField = (timeStamp) => {
     
     fps = Math.round(1 / secondsPassed);
      
-    
-	let x, height, minHeight, maxHeight, minY, maxY, minGap, maxGap, minDelay, maxDelay;
-	for (i = 0; i < gameObstacle.length; i += 1) {
-		if (gamePiece.crashWith(gameObstacle[i])) {
-			//gameField.finish();
-		}
-	}
+	
+	
+	
 	gameField.clear();
 	gameField.frameNo += 1;
-	
-	
-	//CREATE OBSTACLES
-	if (gameField.frameNo  === 1 ) {
-		x = 3240;
-		minDelay = 0;
-		maxDelay = 5;
-		delay =
-		Math.floor(Math.random() * (maxDelay - minDelay + 1) + minDelay);
-		minHeight = 37.5;
-		maxHeight = 75;
-		height =
-		Math.floor(Math.random() * (maxHeight - minHeight + 1) + minHeight);
-		minY = 0;
-		maxY = 40;
-		y =
-		Math.floor(Math.random() * (maxY - minY + 1) + minY);
-		minGap = 35;
-		maxGap = 151;
-		gap =
-		Math.floor(Math.random() * (maxGap - minGap + 1) + minGap);
+
+
+	createObstacles();
+	moveObstacles();
+
+	//OBSTACLES
+	if(obsN <= 59) {
+		if( obsPosition  <= obsStartPoint - 280) {
+			gameField.frameNo  = 0;
+			obsPosition = obsStartPoint;
+
+		}
+	} else {
 		
-		
-		gameObstacle.push(new component(10, height, "yellow", x + delay, y));
-		gameObstacle.push(new component(10, height, "yellow", x + delay, y + height + gap));
-		gameObstacle.push(new component(10, height , "yellow", x + delay, y + height + gap + height + gap));
-		gameObstacle.push(new component(10, height , "yellow", x + delay, y + height + gap + height + gap + height + gap ));
-	
-
-
-		gapY1 = y > 34 ? 0 : undefined;
-		gapY2 = y + height;
-		gapY3 = y + height + gap + height < gameField.canvas.height - 34 
-			? y + height + gap + height
-			: undefined;
-		gapY4 = 
-			y + height + gap + height + gap + height  < gameField.canvas.height - 34 
-			? y + height + gap + height + gap + height 
-			: undefined;
-
-		obstacleSave.push({
-			y: y,
-			x: x,
-			gap: gap,
-			gapY1: gapY1,
-			gapY2: gapY2,
-			gapY3: gapY3,
-			gapY4: gapY4
-		});
-
-		id++;
-		obsN++;
 	}
 
 
 	for(j = 0; j < obstacleSave.length; j++) {
 		obstacleSave[j].x+= (-1 * obstacleSpeed);
-	};
 
-	//MOVE OBSTACLES
-	for (i = 0; i < gameObstacle.length; i++) {
-		gameObstacle[i].speedX = -1;
-		gameObstacle[i].obsPos();
-		gameObstacle[i].update();
-		obsPosition = gameObstacle[i].x;
+		if(obstacleSave[0].x <= gameField.canvas.width + (obsStartPoint / 4) && !oppLoad) {
+			loadOpp();
+		} else if(obstacleSave[0].x <= gameField.canvas.width + 10 && loading) {
+			startField();
+			readingProgress = true;
+		};
 	};
-	
 
 	//OPPONENTS UPDATE TO SCREEN
 	for (i = 0; i < opponents.length; i++) {
@@ -720,86 +848,18 @@ const updateField = (timeStamp) => {
 				opponents[i].countBy
 			);
 		} else {
-
-			//OBSTACLES
-			if(obsN <= 62) {
-		      	if( obsPosition  <= 2960) {
-					gameField.frameNo  = 0;
-					obsPosition = 3240;
-
-				}
-				obstacleSpeed = obsN === 9 ? 2 : obstacleSpeed;
-			};
-
-
-			//OPPONENTS DRIBBLE
-			for(j = 0; j < obstacleSave.length; j++) {
-
-				if (opponent[i].x + 345 >= obstacleSave[j].x && opponent[i].x < obstacleSave[j].x + 15) {
-					let oppY = opponent[i].y ;
-					let oppYH = opponent[i].y + opponent[i].height;
-					gapCenter = (obstacleSave[j].gap - opponent[i].height) / 2 ;
-
-					let gapCenter3 = obstacleSave[j].gapY3 + obstacleSave[j].gap > gameField.canvas.height
-						? Math.floor( 
-							(gameField.canvas.height - obstacleSave[j].gapY3 - opponent[i].height) / 2
-						) : (obstacleSave[j].gap - opponent[i].height) / 2 ;
-
-					let gapCenter4 = obstacleSave[j].gapY4 + obstacleSave[j].gap > gameField.canvas.height
-						? Math.floor( 
-							(gameField.canvas.height - obstacleSave[j].gapY4 - opponent[i].height) / 2
-						) : (obstacleSave[j].gap - opponent[i].height) / 2 ;
-						
-										
-					if(
-						(oppY > obstacleSave[j].gapY1 && oppYH < obstacleSave[j].y)
-						|| (oppY > obstacleSave[j].gapY2 && oppYH < obstacleSave[j].gapY2 + obstacleSave[j].gap)
-						|| (oppY > obstacleSave[j].gapY3 && oppYH < obstacleSave[j].gapY3 + obstacleSave[j].gap)
-						|| (oppY > obstacleSave[j].gapY4 && oppYH < obstacleSave[j].gapY4 + obstacleSave[j].gap)
-					) {
-						opponent[i].escapeGap = oppY;
-					} else {
-						let a = obstacleSave[j].gapY1 === undefined ? 1000 :  obstacleSave[j].y < oppYH ? oppYH - obstacleSave[j].y : oppY;
-						
-						let b = obstacleSave[j].gapY2 + obstacleSave[j].gap < oppYH 
-							? oppYH - (obstacleSave[j].gapY2 + obstacleSave[j].gap ):  obstacleSave[j].gapY2 > oppY
-							? obstacleSave[j].gapY2 - oppY
-							: oppY;
-						
-						let c = obstacleSave[j].gapY3 === undefined ? 1000 : obstacleSave[j].gapY3 + obstacleSave[j].gap < oppYH 
-							? oppYH - (obstacleSave[j].gapY3 + obstacleSave[j].gap ):  obstacleSave[j].gapY3 > oppY
-							? obstacleSave[j].gapY3 - oppY
-							: oppY;
-						
-						let d = obstacleSave[j].gapY4 === undefined ? 1000 :  obstacleSave[j].gapY4 > oppY
-							? obstacleSave[j].gapY4 - oppY
-							: oppY;
-						
-						let min = a < b && a < c && a < d ? a : b < a && b < c && b < d ? b : c < a && c < b && c < d ? c : d < a && d < b && d < c ? d : 0;
-						
-						opponent[i].escapeGap = min === a 
-							? obstacleSave[j].gapY1  + gapCenter
-							: min === b 
-							? obstacleSave[j].gapY2 + gapCenter
-							: min === c 
-							? obstacleSave[j].gapY3 + gapCenter3 
-							: min === d 
-							? obstacleSave[j].gapY4 + gapCenter4 
-							: oppY;
-					};
-
-					if(oppY > opponent[i].escapeGap) {
-				  		opponent[i].y--;
-				  	} else if(oppY < opponent[i].escapeGap) {
-				  		opponent[i].y++;
-				  	} else {
-				  		opponent[i].y;
-				  	}
-					
-				}
-
-			}
-
+		/** if (gamePiece.crashWith(opponent[i])) {
+			if(burningFuel) {
+				obstacleSpeed = 1;
+				opponent[i].x+= 5;
+				opponentSpeed = 100; 
+				setTimeout(() => {
+					obstacleSpeed = 2;
+					opponentSpeed = 0; 
+				}, 200);
+			} 
+		} */
+			//gamePiece.crashWith(opponent[i]);
 
 			//RANDOM ACCELERATIONS
 			opponents[i].accelerateTime++;
@@ -811,7 +871,7 @@ const updateField = (timeStamp) => {
 			oppW = opponent[i].width;
 
 			let minAV = 45;
-			let maxAV = 65;
+			let maxAV = 85;
 			let minDV = 0;
 			let maxDV = 5;
 			let minAST = 100;
@@ -844,8 +904,12 @@ const updateField = (timeStamp) => {
 				opponents[i].checkAccelerate = false;
 			}
 
-
-			opponent[i].namePlayer(opponents[i].name, positionColor[opp.position]);
+			opponent[i].dribble();
+			opponent[i].namePlayer(
+				opponents[i].name, 
+				positionColor[opp.position],
+				-opp.position
+			);
 			opponent[i].disableEscapeScreen();
 			opponent[i].animate();
 			opponent[i].move(opponents[i].accelerateValue);
@@ -882,25 +946,18 @@ const updateField = (timeStamp) => {
 
 	};
 
-
-	//OPPONENTS DRIBBLE
-	// for (i = 0; i < opponent.length; i++) {
-
-	// 	opponent[i].y > opponent[i].escapeGap
-	//   		? opponent[i].y-- 
-	//   		: opponent[i].y < opponent[i].escapeGap 
-	//   		? opponent[i].y++ : opponent[i].y;
-	// }
-
-	
-    // animateOpponents();
-    
-    gamePiece.namePlayer("eniola", positionColor[playerPositionNo]);
+    gamePiece.namePlayer(
+		"eniola", 
+		positionColor[playerPositionNo], 
+		-playerPositionNo
+);
     gamePiece.disableEscapeScreen();
     gamePiece.animate();
     gamePiece.newPos(secondsPassed);
     gamePiece.update();
-    playerPosition.text = playerPositionNo;
+    playerPosition.text = playerPositionNo != undefined
+		? playerPositionNo
+		: ' ';
     playerPosition.update();
     
 	// finishLine.speedX = -1;
@@ -916,12 +973,16 @@ const updateField = (timeStamp) => {
   	burnFuel();
 
   	
+  if(readingProgress) {
   	bar.update();
   	progress.newPro();
   	progress.update();
-        
+  };
+	
+    loading ? startingField() : null;
     
-	window.requestAnimationFrame(updateField);
+	fieldAnimate ? window.requestAnimationFrame(updateField) 
+		: console.log(9);
     
 	
 }
@@ -936,66 +997,109 @@ const everyinterval = (n) => {
 
 //CLICK FUNCTIONS
 const hoverUp = () => {
-	if(optionA.width == "50px") {
-		gameField.clearOption();
-	    optionC.choose();
-	    optionA.unChoose();
-	    showOptions();
-    } else if(optionC.width == "50px") {
-	    gameField.clearOption();
-	    optionB.choose();
-        optionC.unChoose();
-        showOptions();
-    } else {
-	    gameField.clearOption();
-	    optionA.choose();
-        optionB.unChoose();
-        showOptions();
-    };
+	if(fourOptions) {
+		if(optionA.width >= "30px") {
+			gameField.clear();
+			optionD.choose();
+			optionA.unChoose();
+			showOptions();
+		} else if(optionD.width >= "30px") {
+			gameField.clear();
+			optionC.choose();
+			optionD.unChoose();
+			showOptions();
+		}else if(optionC.width >= "30px") {
+			gameField.clear();
+			optionB.choose();
+			optionC.unChoose();
+			showOptions();
+		} else {
+			gameField.clear();
+			optionA.choose();
+			optionB.unChoose();
+			showOptions();
+		};
+	} else if (twoOptions) {
+		if(optionC.width >= "30px") {
+			gameField.clear();
+			optionD.choose();
+			optionC.unChoose();
+			showOptions();
+		} else {
+			gameField.clear();
+			optionC.choose();
+			optionD.unChoose();
+			showOptions();
+		}
+	}
+	
 }
 
 const hoverDown = () => {
-	if(optionA.width == "50px") {
-		gameField.clearOption();
-	    optionB.choose();
-	    optionA.unChoose();
-	    showOptions();
-    } else if(optionB.width == "50px") {
-	    gameField.clearOption();
-	    optionC.choose();
-        optionB.unChoose();
-        showOptions();
-    } else {
-	    gameField.clearOption();
-	    optionA.choose();
-        optionC.unChoose();
-        showOptions();
-    };
+	if(fourOptions) {
+		if(optionA.width >= "30px") {
+			gameField.clear();
+			optionB.choose();
+			optionA.unChoose();
+			showOptions();
+		} else if(optionB.width >= "30px") {
+			gameField.clear();
+			optionC.choose();
+			optionB.unChoose();
+			showOptions();
+		} else if(optionC.width >= "30px") {
+			gameField.clear();
+			optionD.choose();
+			optionC.unChoose();
+			showOptions();
+		} else {
+			gameField.clear();
+			optionA.choose();
+			optionD.unChoose();
+			showOptions();
+		};
+	} else if (twoOptions) {
+		if(optionC.width >= "30px") {
+			gameField.clear();
+			optionD.choose();
+			optionC.unChoose();
+			showOptions();
+			console.log(1)
+		} else {
+			gameField.clear();
+			optionC.choose();
+			optionD.unChoose();
+			showOptions();
+			console.log(2)
+		} 
+	}
+	console.log(8)
 }
 
 const select = () => {
-   	if(optionA.width == "50px") {
-   	if(optionA.text == "Restart") {
-   	gameField.reset();
-   	};
-       gameField.canvas.style.backgroundImage = "url(' '), url(' '), url('Gem Orange.png'), url('Gem Green.png '), url(' ')";
-	   gameField.start();
-		
-    } else if(optionB.width == "50px") {
+   	if(optionA.width == "35px") {
+		// optionA.text === "Restart" ? gameField.reset() : null;
+		// gameField.start();
+		// miniOptions();
+		gameField.reset();
+		indexAnimate = false;
+        window.requestAnimationFrame(updateField);
+        obsStartPoint = 2000;
+        fieldAnimate = true;
+    } else if(optionB.width == "35px") {
       	
         
-      } else {
-      if(optionC.text == "Exit") {
-      	window.close();
-        } else {
-        	gameField.canvas.style.backgroundImage = "url(' '), url(' '), url('Gem Orange.png'), url(' Gem Green.png'), url('')";
-        	gameField.reset();
-        	gameField.loadIndex();
-            gameField.clearOption();
-            optionC.unChoose();
-            showOptions();
-        };
-    }
+	} else if (optionC.width == "35px") {
+      	
+        
+	} else if(optionD.width == "35px") {
+		if(optionD.text == 'Exit') {
+			twoOptions = false;
+			choosedDefault = false;
+			fourOptions = true;
+			optionD.unChoose();
+		}
+	}
 }
 
 const startClick = () => {
@@ -1088,12 +1192,8 @@ const pause = () => {
 };
 
 const resume = () => {
-	// gameField.runInterval =
-	 //  setInterval(run, 2500);
-//     gameField.interval =
-	 //  setInterval(updateField, 20);
-  //  startControl();
-  //  center.onclick = " ";   
+	pauseAnimation = false;
+	window.requestAnimationFrame(updateField);
 };
 
 
@@ -1103,7 +1203,6 @@ const startControl = () => {
 	left.onmousedown = left.ontouchstart = moveLeft;
 	right.onmousedown = right.ontouchstart = moveRight;
 }
-
 
 
 const endControl = () => {

@@ -65,10 +65,6 @@ section#game #interact {
 }
 
 canvas {
-	background-image: url(" "), url(" "), url("Gem Orange.png"), url("Gem Green.png"), url(" ");
-	background-position: 50% 30%, 50% 50%, 5% 5%, 50% 5%, center;
-	background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
-	background-size: 150px 320px, 265px 130px, 25px 25px, 25px 25px, cover;
 	border: 1.5px solid;
 	border-left: 5px solid;
 	border-right: 5px solid;
