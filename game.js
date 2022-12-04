@@ -57,13 +57,23 @@ let loading = true, oppLoad = false;
 preload = function() {
 	img1 =  new Image();
 	img1.src = 'sprites/star-bug.png';
-	img2 =  new Image();
-	img2.src = 'sprites/purple-bug.png';
-	img3 =  new Image();
-	img3.src = 'sprites/flappy-box.png' ;
+	
+	
 
+	img1.onload = () => {
+		img2 =  new Image();
+		img2.src = 'sprites/purple-bug.png';
 
-	startGame();
+		img2.onload = () => {
+			img3 =  new Image();
+			img3.src = 'sprites/flappy-box.png' ;
+
+			img3.onload = () => {
+				startGame();
+			}
+		}
+	}
+	
  };
 
 
