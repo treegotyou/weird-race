@@ -1,8 +1,71 @@
-	if(
-		(oppX + oppW + 100 >= obsX && obsX > oppX + oppW) &&
-		
-		(oppY >= obsY || oppY + oppH >= obsY) &&
-		(oppY <= obsY + obsH || oppY + oppH <= obsY + obsH)
-	)
+//OPPONENTS DODGE OBSTACLES
+			for(j = 0; j < obstacleSave.length; j++) {
 
-	&& oppX + oppW > 480 && obsX > oppX + oppW
+				if (this.x + 345 >= obstacleSave[j].x && this.x < obstacleSave[j].x + 15) {
+					let oppY = this.y ;
+					let oppYH = this.y + this.height;
+					gapCenter = (obstacleSave[j].gap - this.height) / 2 ;
+
+					let gapCenter3 = obstacleSave[j].gapY3 + obstacleSave[j].gap > gameField.canvas.height
+						? Math.floor( 
+							(gameField.canvas.height - obstacleSave[j].gapY3 - this.height) / 2
+						) : (obstacleSave[j].gap - this.height) / 2 ;
+
+					let gapCenter4 = obstacleSave[j].gapY4 + obstacleSave[j].gap > gameField.canvas.height
+						? Math.floor( 
+							(gameField.canvas.height - obstacleSave[j].gapY4 - this.height) / 2
+						) : (obstacleSave[j].gap - this.height) / 2 ;
+						
+										
+					if(
+						(oppY > obstacleSave[j].gapY1 && oppYH < obstacleSave[j].y)
+						|| (oppY > obstacleSave[j].gapY2 && oppYH < obstacleSave[j].gapY2 + obstacleSave[j].gap)
+						|| (oppY > obstacleSave[j].gapY3 && oppYH < obstacleSave[j].gapY3 + obstacleSave[j].gap)
+						|| (oppY > obstacleSave[j].gapY4 && oppYH < obstacleSave[j].gapY4 + obstacleSave[j].gap)
+					) {
+						this.escapeGap = oppY;
+					} else {
+						let a = obstacleSave[j].gapY1 === undefined ? 1000 :  obstacleSave[j].y < oppYH ? oppYH - obstacleSave[j].y : oppY;
+						
+						let b = obstacleSave[j].gapY2 + obstacleSave[j].gap < oppYH 
+							? oppYH - (obstacleSave[j].gapY2 + obstacleSave[j].gap ):  obstacleSave[j].gapY2 > oppY
+							? obstacleSave[j].gapY2 - oppY
+							: oppY;
+						
+						let c = obstacleSave[j].gapY3 === undefined ? 1000 : obstacleSave[j].gapY3 + obstacleSave[j].gap < oppYH 
+							? oppYH - (obstacleSave[j].gapY3 + obstacleSave[j].gap ):  obstacleSave[j].gapY3 > oppY
+							? obstacleSave[j].gapY3 - oppY
+							: oppY;
+						
+						let d = obstacleSave[j].gapY4 === undefined ? 1000 :  obstacleSave[j].gapY4 > oppY
+							? obstacleSave[j].gapY4 - oppY
+							: oppY;
+						
+						let min = a < b && a < c && a < d 
+							? a : b < a && b < c && b < d 
+							? b : c < a && c < b && c < d 
+							? c : d < a && d < b && d < c 
+							? d : 0;
+						
+						this.escapeGap = min === a 
+							? obstacleSave[j].gapY1
+							: min === b 
+							? obstacleSave[j].gapY2
+							: min === c 
+							? obstacleSave[j].gapY3
+							: min === d 
+							? obstacleSave[j].gapY4
+							: oppY;
+					};
+
+					if(oppY > this.escapeGap) {
+				  		this.y--;
+				  	} else if(oppY < this.escapeGap) {
+				  		this.y++;
+				  	} else {
+				  		this.y;
+				  	}
+					
+				}
+
+			}

@@ -36,9 +36,11 @@ let leftArrow, rightArrow, avatarSelected = 0;
 let nameInputBox, nameInput, myName, namesArray;
 let instruction, finishPositionText, finishPositionWritten = false, th, finishTime = 0;
 
+
 // localStorage.clear()
 
- 
+
+
 //PRELOAD GAME ASSETS
 preload = function() {
 	left1 = new Image();
@@ -79,7 +81,7 @@ preload = function() {
 			}
 	}
 	
- };
+};
 
 
 //SHUFFLE AND ADD OPPONENTS AVATAR AND FEATURES
@@ -340,9 +342,9 @@ function component(
 		if(this.type === "image") {
 			ctx.drawImage(
 				this.image,
-            	 this.x,
-        	     this.y,
-          	   this.width, 
+				this.x,
+				this.y,
+				this.width, 
 				this.height
 			);
         } else if (this.type === "sprite") {
@@ -369,7 +371,7 @@ function component(
 			ctx.fillStyle = this.color;
 			let width = ctx.measureText(this.text).width;
 			ctx.fillText(this.text,(gameField.canvas.width - width) / 2, this.y);
-		  } else {
+		  }  else {
 			ctx.fillStyle = this.color;
 			ctx.fillRect(this.x, this.y, this.width, this.height);
 	  }
@@ -389,8 +391,7 @@ function component(
     	playerName.text = name;
         let width = ctx.measureText(playerName.text).width;
         playerName.width = `${25 + size}px`;
-        playerName.x =
-        	(this.x + (this.width/2)) - (width/2) + 5;
+        playerName.x = (this.x + (this.width/2)) - (width/2) + 5;
         playerName.y = this.y - 3;
         playerName.color = color;
         playerPosition.color = color;
@@ -417,8 +418,7 @@ function component(
 		gamePiece.width/= 2;
 		gamePiece.height/= 2;
 	}
-	
-	
+
 	this.animate = function(h) {
 		this.currentFrame+= this.countBy;
 		if(this.currentFrame >= this.totalFrames) {
@@ -755,6 +755,7 @@ const burnFuel = () => {
 	
 }
 
+
 const createObstacles = () => {
 		//CREATE OBSTACLES
 		let x, height, minHeight, maxHeight, minY, maxY, minGap, maxGap, minDelay, maxDelay;
@@ -778,10 +779,16 @@ const createObstacles = () => {
 			Math.floor(Math.random() * (maxGap - minGap + 1) + minGap);
 			
 			
+			if(obsN < 59) {
 			gameObstacle.push(new component(10, height, "yellow", x + delay, y));
 			gameObstacle.push(new component(10, height, "yellow", x + delay, y + height + gap));
 			gameObstacle.push(new component(10, height , "yellow", x + delay, y + height + gap + height + gap));
 			gameObstacle.push(new component(10, height , "yellow", x + delay, y + height + gap + height + gap + height + gap ));
+			} else {
+				gameObstacle.push(new component(10, 10, "green", x + delay, 0));
+				gameObstacle.push(new component(10, 10, "green", x + delay, gameField.canvas.height - 10));
+			};
+	
 	
 			gapY1 = y > 34 ? 0 : undefined;
 			gapY2 = y + height;
@@ -823,9 +830,7 @@ const moveObstacles = () => {
 			} else {
 				obstacleSpeed = -2;
 				opponentSpeed = 200;  
-				setTimeout(() => {
-					clearMoveRight();
-				}, 300);
+				setTimeout(() => burningFuel = false, 300);
 			}
 			
 		} 
@@ -1007,7 +1012,7 @@ const updateField = (timeStamp) => {
 
 	//OBSTACLES
 	//59
-	if(obsN <= 15) {
+	if(obsN <= 59) {
 		if( obsPosition  <= obsStartPoint - 280) {
 			gameField.frameNo  = 0;
 			obsPosition = obsStartPoint;
@@ -1036,6 +1041,7 @@ const updateField = (timeStamp) => {
 			readingProgress = true;
 		};
 	};
+
 
 	//OPPONENTS UPDATE TO SCREEN
 	for (i = 0; i < opponents.length; i++) {
@@ -1156,7 +1162,7 @@ const updateField = (timeStamp) => {
 		myName, 
 		positionColor[playerPositionNo], 
 		-playerPositionNo
-);
+	);
     gamePiece.disableEscapeScreen();
     gamePiece.animate();
     gamePiece.newPos(secondsPassed);
@@ -1179,7 +1185,6 @@ const updateField = (timeStamp) => {
   				progress.update();
  			};
 	};
-
 	
 	window.requestAnimationFrame(updateField);
 }
@@ -1306,11 +1311,10 @@ const select = () => {
 		};
 		
     } else if(optionB.width == "35px") {
-   // 	window.open('https://eniolafashola.github.io', '_blank');;
+   		window.open('https://eniolafashola.github.io', '_blank');
     	openPortfolio();
 	} else if (optionC.width == "35px") {
-      	
-        
+
 	} else if(optionD.width == "35px") {
 		if(optionD.text == 'Exit') {
 			twoOptions = false;
@@ -1408,7 +1412,8 @@ const startControl = () => {
 	down.onmousedown = down.ontouchstart = moveDown;
 	left.onmousedown = left.ontouchstart = moveLeft;
 	right.onmousedown = right.ontouchstart = moveRight;
-	up.onmouseup = up.ontouchend = down.onmouseup = down.ontouchend = left.onmouseup = left.ontouchend = clearMove;
+	up.onmouseup = up.ontouchend = down.onmouseup = 
+	down.ontouchend = left.onmouseup = left.ontouchend = clearMove;
 	right.onmouseup = right.ontouchend = clearMoveRight;
 	
 	//RESUME AFTER PAUSE
@@ -1416,5 +1421,13 @@ const startControl = () => {
 }
 
 const endControl = () => {
-	up.onmousedown = up.ontouchstart = down.onmousedown = down.ontouchstart = left.onmousedown = left.ontouchstart = right.onmousedown = right.ontouchstart = up.onmouseup = up.ontouchend = down.onmouseup = down.ontouchend = left.onmouseup = left.ontouchend = center.onmouseup = center.ontouchend = right.onmouseup = right.ontouchend = " " ;  
+	up.onmousedown = up.ontouchstart = 
+	down.onmousedown = down.ontouchstart = 
+	left.onmousedown = left.ontouchstart = 
+	right.onmousedown = right.ontouchstart = 
+	up.onmouseup = up.ontouchend = 
+	down.onmouseup = down.ontouchend = 
+	left.onmouseup = left.ontouchend = 
+	center.onmouseup = center.ontouchend = 
+	right.onmouseup = right.ontouchend = " " ;  
 };
