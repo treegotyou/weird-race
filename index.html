@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html>
 <head>
 	<meta charset="utf-8">
@@ -7,23 +7,9 @@
 	<title>Beetle Race</title>
 	<link rel="stylesheet" type="text/css" href="game.css">
 </head>
-<body id="body"  onmousedown="return false" onselectstart="return false" onload="preload()">
+<body id="body"  onmousedown="return false" onselectstart="return false" onload="gameField.loadScreen()">
 	<section id="game">
-		<span id="screen">
-			<div id="canvas"></div>
-        </span>
-        <span id="title">
-        	<h2>1965</h2>
-        </span>
-        <span id="interact">
-        	<div id="cntl">
-			  <div id="up" onmouseup="clearMove()" ontouchend="clearMove()">^</div><br>
-			  <div id="left" onmouseup="clearMove()"  ontouchend="clearMove()"><</div>
-			  <div id="center" onmouseup="clearMove()" ontouchend="clearMove()"></div>
-			  <div id="right" onmouseup="clearMoveRight()" ontouchend="clearMoveRight()">></div><br>
-			  <div id="down" onmouseup="clearMove()" ontouchend="clearMove()" >~</div>				
-		  </div>
-        </span>
+		<span id="canvas"></span>
 	</section>
  <script src="game.js"></script>
 </body>

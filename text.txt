@@ -1,8 +1,2 @@
-	if(
-		(oppX + oppW + 100 >= obsX && obsX > oppX + oppW) &&
-		
-		(oppY >= obsY || oppY + oppH >= obsY) &&
-		(oppY <= obsY + obsH || oppY + oppH <= obsY + obsH)
-	)
-
-	&& oppX + oppW > 480 && obsX > oppX + oppW
+circle: <a href="https://www.flaticon.com/free-icons/circle" title="circle icons">Circle icons created by Freepik - Flaticon</a>
+thunder: <a href="https://www.flaticon.com/free-icons/thunder" title="thunder icons">Thunder icons created by Freepik - Flaticon</a>
