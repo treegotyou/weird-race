@@ -1,4 +1,5 @@
 body, html {
+	font-family: monospace; 
 	margin: 0;
 	padding: 0
 	width: 100%;
@@ -20,6 +21,15 @@ section#game {
 	display: flex;
 	align-items: center; 
 	justify-content: center;
+}
+
+section#game #cancel {
+	width: 3em;
+	height: auto;
+	position: absolute;
+	top: 4%;
+	left: 5%;
+	z-index: 100;
 }
 
 section#game #canvas {
@@ -46,8 +56,20 @@ canvas {
 	margin: 0;
 }    
 
-section#game #options-box {
+section#game #loadscreen-box {
 	color: indigo;
+	width: 100%;
+	height: 20%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	position: absolute;
+	top: 40%;
+	left: 0%;
+}
+
+section#game #options-box {
 	width: 100%;
 	height: 20%;
 	display: flex;
@@ -57,6 +79,16 @@ section#game #options-box {
 	position: absolute;
 	top: 60%;
 	left: 0%;
+}
+
+#options-a, #options-b, #options-c, #options-d {
+	color: indigo;
+	font-size: 1.5em;
+}
+
+#options-a:hover , #options-b:hover, #options-c:hover, #options-d:hover{
+	color: blue;
+	font-size: 1.7em;
 }
 
 section#game #edit-box {
@@ -82,51 +114,34 @@ section#game #edit-box {
 }
 
 #name-input {
+	color: white;
+	border: none;
+	border-bottom: solid 1px indigo;
+	font-size: 1em;
 	background: rgba(0,0,0,0.1);
 	border-radius: 4px;
-	width: 17em;
+	width: 12.5em;
 	height: 2.5em;
+	margin-bottom: 0;
 	align-self: center;
 	text-align: center;
 }
 
-#select-player-button-box {
-	width: 500px;
-	max-width: 80%;
-	height: 2.5em;
-	align-self: center;
-	display: flex;
-	justify-content: space-between;
+::placeholder {
+	color: white;
+	font-family: monospace;
 }
 
-#select-player-button-a {
+#select-player-button {
 	color: #33FCFF;
 	font-size: 1.5em;
-	width: 4em;
-	height: 100%;
+	font-family: monospace;
+	width: 6em;
+	height: 1.6em;
+	margin-top: 0;
+	align-self: center;
 	border-radius: 4px;
 	background-color: green;
-	
-}
-
-#select-player-button-b {
-	color: #33FCFF;
-	font-size: 1.5em;
-	width: 4em;
-	height: 100%;
-	border-radius: 4px;
-	background-color: red;
-	
-}
-
-
-
-#backward {
-	grid-area: left;
-}
-
-#forward {
-	grid-area: right;
 }
 
 section#game #control-box {
@@ -137,10 +152,6 @@ section#game #control-box {
 	left: 0%;
 	display: flex;
 	flex-direction: column;
-	
-	/*grid-template-areas: 
-		"left up up right"
-		"left down down right";*/
 }
 
 #upward , #downward{
@@ -161,11 +172,91 @@ section#game #finished-box {
 
 #finished-button {
 	color: #33FCFF;
+	font-family: monospace;
 	background-color: green;
 	font-size: 1.5em;
-	width: 5em;
+	width: 6em;
 	height: 1.6em;
 	border-radius: 4px;
+}
+
+section#game #credits-box {
+	font-family: monospace;
+	background-color: rgba(0,0,0,0.1);
+	width: 80%;
+	height: 80%;
+	position: absolute;
+	top: 10%;
+	left: 10%;
+	overflow-y: scroll;
+}
+
+#credits-box span {
+	width: 100%;
+	height: 20%;
+	margin: 2em 0 2em 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-evenly;
+}
+
+#credits-box h3{
+	color: indigo;
+	margin: 0;
+}
+
+#credits-box p {
+	color: whitesmoke;
+	font-size: 1.1em;
+}
+
+#credits-box button{
+	color: whitesmoke;
+	width: auto;
+	height: 1.8em;
+	background-color: blue;
+}
+
+section#game #accounts {
+	width: 80%;
+	height: 100%;
+	position: absolute;
+	top: 0%;
+	left: 10%;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-evenly;
+}
+
+#account-a , #account-b {
+	width: 100%;
+	height: 30%;
+	background-color: rgba(0,0,0,0.1);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-evenly;
+}
+
+#accounts button {
+	color: whitesmoke;
+	font-family: monospace;
+	background-color: blue;
+	font-size: 1em;
+	width: 5em;
+	height: 1.8em;
+}
+
+#accounts h3, #accounts h2 {
+	color: indigo;
+	margin: 0;
+}
+
+#accounts p {
+	color: white;
+	font-size: 1.2em;
+	margin: 0;
 }
 
 :-webkit-full-screen {
