@@ -1,19 +1,18 @@
 let gamePiece, gamePieceClone, fuel = 300, burningFuel = false, burnTrigger = false;
 const nameStore = [
-		"killer", "baba", "leo", "shittu", "lion",
+		"6yh", "baba", "leo", "shittu", "lion",
 		"pleasse", "kate", "maine", "mr-money", "og",
 		"bintu", "alaye", "boss", "no-1", "them",
-		"file-funn", "alayetoshegogo", "glock-9", "pablo", "nathaniel", "i-am-the-man", 
+		"file-funn", "alayetoshegogo", "jesus-boy", "pablo", "nathaniel", "i-am-the-man", 
 		"ton-to-boyy", "dammy-krane", "Elizabeth", "white-oosha", "saheed", "ayer", "ayee", 
-		"Sam", "2pack", "layer", "bro-mustapha"
+		"Sam", "2pack", "layer", "bro-mustapha", "john-john", "tell-it"	
 ];
 let numColumns, frameWidth, currentFrame = 0;
 let gameObstacle = [], obstacleSave = [], finished = false, obsX, obsY, obsH, obsN= 0, id = 0, obsStartPoint;
 let finishLine = [], finishPosition = 0;
 let paused;
-let optionA, optionB, optionC, optionD;
 let secondsPassed = 0, oldTimeStamp = 0, fps;
-let obsSpeedValue = 5, obstacleSpeed = 6, intervalRate = 250 / obstacleSpeed;
+let obsSpeedValue, oppSpeedValue, obstacleSpeed = 6, intervalRate = 250 / obstacleSpeed; 
 let speedInterval;
 let obsPosition;
 let opponents = [], opponent = [], opponentSpeed = -50, dodgeSpeed = 0, opponentAvatar = [],
@@ -35,13 +34,15 @@ let indexAnimate = true, editingPlayer = false, fieldAnimate = false, fieldPause
 let loading = true, oppLoad = false;
 let leftArrow, rightArrow, avatarSelected = 0;
 let myName, namesArray;
-let finishPositionText, finishPositionWritten = false, th, finishTime = 0;
+let finishPositionText, finishPositionWritten = false, th;
 let background, power;
 let difficulty, minAV, maxAV, minDV,  maxDV;
 let countDown, countDisplay;
-let optionsBox, editBox, controlBox;
+let loadScreenBox, optionsBox, editBox, controlBox, creditsBox, accounts;
 let backgroundGrass;
 let timesPlayed, checkTimesPlayed;
+let playerGeerTime, playerGeerTimeCount;
+const maxGT = 299, minGT = 100;
 
 
 
@@ -78,7 +79,18 @@ const loadFonts = () =>{
 
 //PRELOAD GAME ASSETS
 preload = function() {
-	loadFonts();
+	upA = new Image();
+	upA.src = 'interact/up-arrow (5).png';
+	
+	downA = new Image();
+	downA.src = 'interact/down-arrow (3).png';
+	
+	// upB = new Image();
+	// upB.src = 'interact/up-arrow (4).png';
+	
+	// downB = new Image();
+	// downB.src = 'interact/down-arrow (2).png';
+	
 	grass = new Image();
 	grass.src = 'background/grass.png';
 
@@ -111,8 +123,13 @@ preload = function() {
 									img3.src = 'sprites/flappy-box.png' ;
 
 										img3.onload = () => {
-											avatar = [ img1, img2, img3 ];
-											startGame();
+											cancel = new Image();
+											cancel.src = 'interact/cancel.png';
+											cancel.onload = () => {
+												document.getElementById("game").removeChild(loadScreenBox);
+												avatar = [ img1, img2, img3 ];
+												startGame();
+											}
 
 											// light = new Image();
 											// light.src = 'lightning.png';
@@ -165,11 +182,12 @@ const loadOpponents = () => {
 			escapeGap: y,
 			checkGapDifference: false,
 			gapDifference: 0,
+			escapeGapCalculated: false,
 			stopY: y,
 			stopX: x/2 + 10,
 			stop: false
 		};
-		x += 200;
+		x += 120;
 		namesArray.splice(name, 1)
 		pickedCount--;
 	};
@@ -178,18 +196,18 @@ const loadOpponents = () => {
 //ASSIGN NEW COMPONENTS TO VARIABLES AND CALL LOADINDEX()
 startGame = function() {
 	backgroundGrass = new component(1300, 280, grass , 0, 150, "background");
-	gamePiece = new component(80, 32, img1 , 50, 194, "sprite", 15, 0, 1, 'player');
-	gamePieceClone = new component(160, 64, img1 , ((gameField.canvas.width - 160) / 2) - 10, 225, "sprite", 15, 0, 1, 'player'); 
+	gamePiece = new component(80, 32, img1 , 50, 194, "sprite", 15, 0, 1, 'player', false);
+	gamePieceClone = new component(160, 64, img1 , ((gameField.canvas.width - 160) / 2) - 10, 225, "sprite", 15, 0, 1, 'player', false); 
 	//x=((gameField.canvas.width - (gamePiece.width * 2)) / 2) - 10
 	leftArrow = new component(50, 20, left2 , ((gameField.canvas.width - 160) / 2) - 110, 250, "image");
 	rightArrow = new component(50, 20, right1, ((gameField.canvas.width - 160) / 2) + 210, 250, "image");
 	// bar = new component(370, 5, "white", 80, 38);
 	// progress = new component(300, 1, "", bar.x + 5, bar.y + 2);
 	// power = new component(50, 30, '' , 20, bar.y - 10, "image");
-	playerName = new component("17px", "Permanent Marker", 'black' , 0, 0, "center-text");
-    playerPosition = new component("50px", "Frijole", "violet", 530, 58, "text");
-	finishPositionText =  new component("75px", "Frijole", "black", 0, 0, "text");
-	th = new component("40px", "Frijole", "white", 0, 0, "text");
+	playerName = new component("17px", "Permanent Marker, monospace", 'black' , 0, 0, "center-text");
+    playerPosition = new component("50px", "Frijole, monospace", "violet", 530, 58, "text");
+	finishPositionText =  new component("75px", "Frijole, monospace", "black", 0, 0, "text");
+	th = new component("40px", "Frijole, monospace", "white", 0, 0, "text");
 	background = new component(0, 0, "black", 0, 0);
 	// countDisplay = new component("75px", "Frijole", "black", 0, 0, "text");
     gameField.loadIndex();
@@ -200,22 +218,22 @@ const showIndexOptions = () => {
 	optionsBox = document.createElement("span");
 	document.getElementById("game").appendChild(optionsBox);
 	optionsBox.setAttribute("id", "options-box");
-	optionsBox.style.fontFamily = "Rubik Vinyl";
+	optionsBox.style.fontFamily = "Rubik Vinyl, monospace";
 	
-	optionA = document.createElement("h1");
-	optionB = document.createElement("h1");
-	optionC = document.createElement("h1");
-	optionD = document.createElement("h1");
+	const optionA = document.createElement("h1");
+	const optionB = document.createElement("h1");
+	const optionC = document.createElement("h1");
+	const optionD = document.createElement("h1");
 	
 	optionA.appendChild(document.createTextNode("Play Game"));
 		optionB.appendChild(document.createTextNode("View Portfolio"));
 		optionC.appendChild(document.createTextNode("Credits"));
 		optionD.appendChild(document.createTextNode("Support Me")); 
 		
-		optionsBox.appendChild(optionA);
-		optionsBox.appendChild(optionB);
-		optionsBox.appendChild(optionC);
-		optionsBox.appendChild(optionD);
+		optionsBox.appendChild(optionA).setAttribute("id", "options-a");
+		optionsBox.appendChild(optionB).setAttribute("id", "options-b");
+		optionsBox.appendChild(optionC).setAttribute("id", "options-c");
+		optionsBox.appendChild(optionD).setAttribute("id", "options-d");
 		
 		optionA.onclick = () => {
 			removeIndexOptions();
@@ -225,6 +243,16 @@ const showIndexOptions = () => {
 		
 		optionB.onclick = () => {
 			window.open('https://eniolafashola.github.io', '_blank');
+		}
+		
+		optionC.onclick = () => {
+			removeIndexOptions();
+			gameField.credits();
+		}
+		
+		optionD.onclick = () => {
+			removeIndexOptions();
+			gameField.support();
 		}
 }
 
@@ -242,15 +270,49 @@ const addControl = () => {
 	const down = document.createElement("span");
 	down.setAttribute("id", "downward");
 	
+	//up.appendChild(upA);
+	//down.appendChild(downA);
+	
 	controlBox.appendChild(up);
 	controlBox.appendChild(down);
 	
-	up.onmousedown = up.ontouchstart = moveUp;
-	down.onmousedown = down.ontouchstart = moveDown;
+	up.onmousedown = up.ontouchstart = () => {
+		gamePiece.speedY = -50;
+		//up.style.border = "1px solid indigo";
+		
+		up.style.backgroundPosition = "50% 15%";
+		up.style.backgroundColor = "rgba(255,255,255,0.1)";
+	};
+	
+	down.onmousedown = down.ontouchstart = () => {
+		gamePiece.speedY = 50;
+		//down.style.border = "1px solid indigo";
+		down.style.backgroundPosition = "50% 85%";
+		down.style.backgroundColor = "rgba(255,255,255,0.1)";
+	}
 
 	up.onmouseup = up.ontouchend = down.onmouseup = 
-	down.ontouchend =  clearMove;
+	down.ontouchend =  () => {
+		gamePiece.speedX = 0;
+    	gamePiece.speedY = 0;
+    	obstacleSpeed = obsSpeedValue;
+		opponentSpeed = oppSpeedValue;
+		up.style.backgroundPosition = "50% 120%";
+		down.style.backgroundPosition = "50% -20%";
+		up.style.backgroundColor = "rgba(0,0,0,0.0)";
+		//up.style.border = "none";
+		down.style.backgroundColor = "rgba(0,0,0,0.0)";
+		//down.style.border = "none";
+	}
 	
+}
+
+const showCancelIcon = (action) => {
+	document.getElementById("game").appendChild(cancel).setAttribute("id", "cancel");
+	
+	cancel.onclick = cancel.ontouchstart = cancel.onmousedown = cancel.onselectstart = action;
+	
+	//cancel.onclick = action;
 }
 
 
@@ -262,10 +324,31 @@ const gameField = {
 	document.createElement("canvas"),
 
 	loadScreen : function () {
+		loadFonts();
 		this.canvas.width = screen.width < 600 ?  680 : 1200 ;
 		this.canvas.height = 420;
 		this.context =
 		this.canvas.getContext("2d");
+		
+		loadScreenBox = document.createElement("span");
+		document.getElementById("game").appendChild(loadScreenBox);
+		loadScreenBox.setAttribute("id", "loadscreen-box");
+		loadScreenBox.style.fontFamily = "Rubik Vinyl, monospace";
+	
+		const title = document.createElement("h1");
+		title.appendChild(document.createTextNode("WEIRD RACE"));
+		
+		//title.style.color = "indigo";
+		title.style.fontSize = "3em";
+		
+		const loading = document.createElement("h3");
+		loading.appendChild(document.createTextNode("LOADING.."));
+		
+		loading.style.fontFamily = "monospace";
+		loading.style.fontSize = "1em";
+		
+		loadScreenBox.appendChild(title);
+		loadScreenBox.appendChild(loading);
 		
 		document.getElementById("canvas").appendChild(this.canvas);
 		preload();
@@ -278,7 +361,7 @@ const gameField = {
 			if(localStorage.name) {
 				myName = JSON.parse(localStorage.getItem("name") );  
 			} else {
-			myName = "-- Me --";
+			myName = "Edit Name";
 			};
 			
 			if(localStorage.sprite) {
@@ -309,26 +392,15 @@ const gameField = {
 		const input = document.createElement("Input");
 		input.setAttribute("id", "name-input");
 		
-		const buttonBox = document.createElement("span");
-		buttonBox.setAttribute("id", "select-player-button-box");
-		
-		const buttonA = document.createElement("button");
-		buttonA.innerText = "Start";
-		buttonA.setAttribute("id", "select-player-button-a");
-		
-		
-		const buttonB = document.createElement("button");
-		buttonB.setAttribute("id", "select-player-button-b");
-		buttonB.innerText = "Exit";
-		
-		buttonBox.appendChild(buttonA);
-		buttonBox.appendChild(buttonB);
+		const button = document.createElement("button");
+		button.innerText = "Start";
+		button.setAttribute("id", "select-player-button");
 	
 		document.getElementById("game").appendChild(editBox);
 		
 		editBox.appendChild(arrowBox);
-		editBox.appendChild(input). placeholder = "Edit Name"; 
-		editBox.appendChild(buttonBox);
+		editBox.appendChild(input).placeholder = myName 
+		editBox.appendChild(button);
 	
 		left = document.createElement("span");
 		right = document.createElement("span");
@@ -337,22 +409,186 @@ const gameField = {
 		arrowBox.appendChild(left);
 		arrowBox.appendChild(right);
 		
-		buttonA.onclick = () => {
+		const name = myName;
+		
+		button.onclick = () => {
+			console.log("ggg", input.value)
+			myName = input.value;
+			myName = myName === null ||  /[a-zA-Z]/.test(myName) !== true ? name : myName.toLowerCase();
+			
+			if(myName === "Edit Name") {
+				input.style.border = "solid 2px red";
+				input.style.color = "red";
+				return
+			}
+			
+			if(myName.length > 14) {
+				myName = myName.slice(0, 14);
+			};
+			myName = myName.replace(/ /g, "-");
+			
+			document.getElementById("game").removeChild(cancel);
 			this.start();
 			document.getElementById("game").removeChild(editBox);
+			localStorage.setItem("name", JSON.stringify(myName) );
 			localStorage.setItem("sprite", JSON.stringify(avatarSelected) );
 		}
 		
-		buttonB.onclick = () => {
+		showCancelIcon(() => {
 			document.getElementById("game").removeChild(editBox);
-			showIndexOptions();
+			document.getElementById("game").removeChild(cancel);
 			editingPlayer = false;
-		}
-	
-		pickAvatar();
+			showIndexOptions();
+			return;
+		});
     
 	},
+	
+	
+	credits : function() {
+		creditsBox = document.createElement("span");
+		const creditsArray = [];
+		creditsBox.setAttribute("id", "credits-box");
+		const titleArray = [
+			"TEACHER", 
+			"SPRITES",
+			"TRIANGLE ICONS",
+			"BACKGROUND/GRASS",
+			"RED CROSS/CANCEL",
+			"FONTS"
+		];
+		const namesArray = [
+			"HOLY SPIRIT",
+			"BEUVOULIN",
+			"IYAHICON",
+			"UPL56",
+			"PHICHTO",
+			"GOOGLE FONTS"
+		];
+		const linkArray = [
+			"https://www.youtube.com/live/KaivCAaVc14?feature=share",
+			" https://bevouliin.com",
+			" https://www.flaticon.com/authors/iyahicon",
+			" https://www.freepik.com/author/upl56",
+			" https://pngtree.com/phichto_3780894?type=1",
+			" https://fonts.google.com"
+		];
+		const titles = [];
+		const names = [];
+		const buttons = [];
+		
+		for(i = 0; i < namesArray.length; i++) {
+			titles[i] = document.createElement("h3");
+			titles[i].appendChild(document.createTextNode(titleArray[i]));
+			names[i] = document.createElement("p");
+			names[i].appendChild(document.createTextNode(namesArray[i]));
+			
+			let buttonText = namesArray[i] === "HOLY SPIRIT"
+				? "LEARN MORE" : "VIEW PAGE";
+			buttons[i] = document.createElement("button");
+			buttons[i].innerText = buttonText;
+     		creditsArray[i] = document.createElement("span");
+     		
+     		creditsArray[i].appendChild(titles[i]);
+     		creditsArray[i].appendChild(names[i]);
+     		creditsArray[i].appendChild(buttons[i]);
+     		creditsBox.appendChild(creditsArray[i])
      
+     		
+     	}
+     
+     buttons[0].onclick = () => window.open(linkArray[0], '_blank');
+     buttons[1].onclick = () => window.open(linkArray[1], '_blank');
+     buttons[2].onclick = () => window.open(linkArray[2], '_blank');
+     buttons[3].onclick = () => window.open(linkArray[3], '_blank');
+     buttons[4].onclick = () => window.open(linkArray[4], '_blank');
+     buttons[5].onclick = () => window.open(linkArray[5], '_blank');
+     
+     	document.getElementById("game").appendChild(creditsBox);
+     	
+     
+		/**for(i = 0; i <= 6; i++) {
+     		creditsArray[i] = document.createElement("span");
+     		creditsBox.appendChild(creditsArray[i])
+     	}*/
+     	console.log(creditsBox)
+     
+		//document.getElementById("game").appendChild(editBox)
+		
+		showCancelIcon(() => {
+			document.getElementById("game").removeChild(creditsBox);
+			document.getElementById("game").removeChild(cancel);
+			showIndexOptions();
+			return;
+		});
+	},
+	
+	
+     support : function() {
+     	
+     	accounts = document.createElement("span");
+     	const accountA = document.createElement("span");
+     	const accountB = document.createElement("span");
+     
+     	const nameA = document.createElement("h2");
+		 const nameB = document.createElement("h2");
+     
+     	nameA.appendChild(document.createTextNode("ENIOLA MICHEAL FASHOLA"));
+     	nameB.appendChild(document.createTextNode("ENIOLA MICHEAL FASHOLA"));
+     
+     	const numberA = document.createElement("p");
+     	const numberB = document.createElement("p");
+     
+     	numberA.appendChild(document.createTextNode("803-240-4351"));
+     	numberB.appendChild(document.createTextNode("200-999-7981"));
+     
+     	const bankA = document.createElement("h3");
+     	const bankB = document.createElement("h3");
+     
+     	bankA.appendChild(document.createTextNode("PalmPay Bank"));
+		bankB.appendChild(document.createTextNode("Kuda Bank"));
+		
+		const buttonA = document.createElement("button");
+     	const buttonB = document.createElement("button");
+     
+     	buttonA.innerText = "COPY";
+     	buttonB.innerText = "COPY"; 
+
+		const copy = (text) => {
+    	window.prompt("COPY BANK DETAILS BELOW", text);
+  		};
+  
+  	  buttonA.onclick = () => copy("8032404351  PALMPAY");
+  
+  	buttonB.onclick = () => copy("2009997981  KUDA");
+     
+     	accounts.setAttribute("id", "accounts");
+     	accountA.setAttribute("id", "account-a");
+     	accountB.setAttribute("id", "account-b");
+     	
+     	accountA.appendChild(nameA);
+     	accountA.appendChild(numberA);
+     	accountA.appendChild(bankA);
+     	accountA.appendChild(buttonA);
+     
+     	accountB.appendChild(nameB);
+     	accountB.appendChild(numberB);
+     	accountB.appendChild(bankB);
+     	accountB.appendChild(buttonB);
+     
+     
+     	accounts.appendChild(accountA);
+     	accounts.appendChild(accountB);
+     
+     	document.getElementById("game").appendChild(accounts);
+     
+     showCancelIcon(() => {
+		document.getElementById("game").removeChild(accounts);
+		document.getElementById("game").removeChild(cancel);
+		showIndexOptions();
+		return;
+		});
+     },
 
 	start : function() {
 		if(typeof(Storage)!=="undefined"){ 
@@ -377,6 +613,8 @@ const gameField = {
 		this.reset();
 		indexAnimate = false;
 		editingPlayer = false;
+		obsSpeedValue = 4.8;
+		oppSpeedValue = -67.2;
 		obstacleSpeed = 60;
 		playerName.type = "text";
 		obsStartPoint = 2480;
@@ -399,6 +637,7 @@ const gameField = {
 		
 		button.onclick = () => {
 			document.getElementById("game").removeChild(finishedBox);
+			
 			this.totalReset();
 			this.loadIndex();
 		}
@@ -477,9 +716,11 @@ function component(
 	totalFrames, 
 	currentFrame,
 	countBy,
-	name
+	name,
+	escapeGapCalculated
 ) {
 	this.name = name;
+	this.escapeGapCalculated = escapeGapCalculated;
 	this.type = type;
 	this.color = color;
 	this.totalFrames = totalFrames;
@@ -550,7 +791,7 @@ function component(
     	playerName.text = name;
         let width = ctx.measureText(playerName.text).width;
         playerName.width = `${25 + size}px`;
-        playerName.x = (this.x + (this.width/2)) - (width/2) + 5;
+        playerName.x = name !== opponents[0].name ? (this.x + (this.width/2)) - (width/2) + 5 : (this.x + (this.width/2)) - (width/2) + (width/3) + 5 ;
         playerName.y = this.y - 3;
         playerName.color = color;
         playerPosition.color = color;
@@ -587,7 +828,6 @@ function component(
 				this.x = finishLine[0].x + stopPoint;
 				if(gamePiece.x  >=  finishLine[0].x + 20) {
 					obstacleSpeed = 0;
-					clearMove();
 					finishLine[0].x = 0;
 					finishLine[1].x = 0;
 				} 
@@ -903,9 +1143,6 @@ const pickAvatar = () => {
 
 // const inputName = () => {
 	
-	
-	
-	
 // 	up.onclick = down.onclick = () => {
 // 		const name = myName;
 // 		myName = prompt("Enter Name", myName);
@@ -924,13 +1161,15 @@ const loadOpp = () => {
 }
 
 const startField = () => {
+	playerGeerTimeCount = 0;
+	playerGeerTime = Math.floor(Math.random() * (maxGT - minGT + 1) + minGT);
+	obstacleSpeed = obsSpeedValue;
+	opponentSpeed = oppSpeedValue;
+	gamePiece.countBy = 1;
 	loading = false;
-	obstacleSpeed = 5;
-	opponentSpeed = obstacleSpeed * (-10);
 }
 
 const finishField = () => {
-	finishTime++;
 	const width = ctx.measureText(finishPositionText.text).width;
 	finishPositionText.x = ((gameField.canvas.width - width) / 2) - 50;
 	finishPositionText.y = 200;
@@ -940,9 +1179,9 @@ const finishField = () => {
 	finishPositionText.update();
 	
 	//ENABLE CENTER BUTTON FOR RESTART
-	if(finishTime >= 59 && !checkTimesPlayed) {
-		gameField.finish();
-		console.log("No of times played: ", timesPlayed)
+	if(!checkTimesPlayed) {
+		document.getElementById("game").removeChild(controlBox);
+		setTimeout(()=>gameField.finish(), 1000);
 		checkTimesPlayed = true;
 	};
 }
@@ -966,6 +1205,8 @@ const updateField = (timeStamp) => {
 	if(!fieldAnimate) {
 		return
 	}
+	
+	intervalRate = 250 / obstacleSpeed;
 
 	secondsPassed = (timeStamp - oldTimeStamp) / 1000  ;
 	secondsPassed = Math.min(secondsPassed, 0.1);
@@ -981,7 +1222,7 @@ const updateField = (timeStamp) => {
 
 	//OBSTACLES
 	//59 
-	if(obsN <= 59) {
+	if(obsN <= 29) {
 		if( obsPosition  <= obsStartPoint - 320) {
 			gameField.frameNo  = 0;
 			obsPosition = obsStartPoint;
@@ -1010,7 +1251,24 @@ const updateField = (timeStamp) => {
 			readingProgress = true;
 		};
 	};
-
+	
+	//DETERMINE PLAYER ACCELERATION OR DECELERATION VALUE
+	if(loading === false) {
+		playerGeerTimeCount++;
+		
+		if(playerGeerTimeCount === playerGeerTime) {
+			playerGeerTime = Math.floor(Math.random() * (maxGT - minGT + 1) + minGT);
+			obsSpeedValue = Math.random() * (6.8 - 4.8 + 1) + 4.8;
+			oppSpeedValue = -17 * obsSpeedValue;
+			
+			gamePiece.countBy = obsSpeedValue > 6.3 
+				? 3 : obsSpeedValue < 5.3 
+				? 1 : 2;
+			
+			playerGeerTimeCount = 0;
+			console.log("checked")
+		};
+	}
 
 	//OPPONENTS UPDATE TO SCREEN
 	for (i = 0; i < opponents.length; i++) {
@@ -1025,7 +1283,8 @@ const updateField = (timeStamp) => {
 				opponents[i].totalFrames,
 				opponents[i].currentFrame,
 				opponents[i].countBy,
-				opponents[i]
+				opponents[i],
+				opponents[i].escapeGapCalculated
 			);
 		} else {
 		/** if (gamePiece.crashWith(opponent[i])) {
@@ -1105,6 +1364,7 @@ const updateField = (timeStamp) => {
 			!opponents[i].stop ? opponent[i].newPos(secondsPassed) : null;
 			opponent[i].writeFinishPosition(opponents[i].name);
 			opponent[i].update();
+			
 
 			//DETECT POSITIONS
 			if (positionChecked) {
@@ -1164,8 +1424,9 @@ const updateField = (timeStamp) => {
   if(finishPositionWritten) {
 		finishField();
 	} else {
-			playerPosition.update();
+		playerPosition.update();
 	};
+	
 	
 	window.requestAnimationFrame(updateField);
 }
@@ -1178,21 +1439,6 @@ const everyinterval = (n) => {
 }
 
 //CONTROL FUNCTIONS
-const moveUp = () => {
-	gamePiece.speedY = -50;
-}
-
-const moveDown = () => {
-	gamePiece.speedY = 50;
-}
-
-const clearMove = () => {
-    gamePiece.speedX = 0;
-    gamePiece.speedY = 0;
-    obstacleSpeed = 6;
-	opponentSpeed = -100;
-};
-
 const pause = () => {         
    fieldAnimate = false;
    fieldPaused = true;
