@@ -43,64 +43,25 @@ let backgroundGrass;
 let timesPlayed, checkTimesPlayed;
 let playerGeerTime, playerGeerTimeCount;
 const maxGT = 299, minGT = 100;
-
+let isDesktop;
 
 
 // localStorage.clear()
 
 
-//LOAD FONTS
-const loadFonts = () =>{
-	WebFontConfig = {
-		google: {
-			families: [
-				'Permanent Marker:300, 400, 700', 
-				'Rubik Vinyl: 300, 400, 700', 
-				'Frijole: 300, 400, 700'
-			]
-		},
-		loading: function() {
-			
-		},
-		active: function() {
-			
-		}
-	};
-
-	(function(d) {
-		var wf = d.createElement('script'), s = d.scripts[0];
-		wf.src = 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js';
-		wf.async = true;
-		s.parentNode.insertBefore(wf, s);
-	})(document);
-};
-
-
-
 //PRELOAD GAME ASSETS
 preload = function() {
-	upA = new Image();
-	upA.src = 'interact/up-arrow (5).png';
 	
-	downA = new Image();
-	downA.src = 'interact/down-arrow (3).png';
-	
-	// upB = new Image();
-	// upB.src = 'interact/up-arrow (4).png';
-	
-	// downB = new Image();
-	// downB.src = 'interact/down-arrow (2).png';
-	
-	grass = new Image();
-	grass.src = 'background/grass.png';
+		grass = new Image();
+		grass.src = 'background/grass.png';
 
-	grass.onload = () => {
-		left1 = new Image();
-		left1.src = 'interact/left-arrow.png';
+		grass.onload = () => {
+			left1 = new Image();
+			left1.src = 'interact/left-arrow.png';
 		
-		left1.onload = () => {
-			left2 = new Image();
-			left2.src = 'interact/left-arrow2.png';
+			left1.onload = () => {
+				left2 = new Image();
+				left2.src = 'interact/left-arrow2.png';
 				
 				left2.onload = () => {
 					right2 = new Image();
@@ -129,8 +90,7 @@ preload = function() {
 												document.getElementById("game").removeChild(loadScreenBox);
 												avatar = [ img1, img2, img3 ];
 												startGame();
-											}
-
+											}											
 											// light = new Image();
 											// light.src = 'lightning.png';
 										}
@@ -166,7 +126,7 @@ const loadOpponents = () => {
 		opponents[i] = {
 			y: y,
 			sprite: avatar[N],
-			name: namesArray[name],
+			name: namesArray[name].toUpperCase(),
 			x: x,
 			totalFrames: N === 2 ? 12 : 15,
 			currentFrame: 0,
@@ -183,11 +143,13 @@ const loadOpponents = () => {
 			checkGapDifference: false,
 			gapDifference: 0,
 			escapeGapCalculated: false,
+			extraGapCalculation: 0,
+			extraGap: Math.random() * (20 - 1 + 1) + 1,
 			stopY: y,
 			stopX: x/2 + 10,
 			stop: false
 		};
-		x += 120;
+		x += 200;
 		namesArray.splice(name, 1)
 		pickedCount--;
 	};
@@ -196,7 +158,7 @@ const loadOpponents = () => {
 //ASSIGN NEW COMPONENTS TO VARIABLES AND CALL LOADINDEX()
 startGame = function() {
 	backgroundGrass = new component(1300, 280, grass , 0, 150, "background");
-	gamePiece = new component(80, 32, img1 , 50, 194, "sprite", 15, 0, 1, 'player', false);
+	gamePiece = new component(80, 32, img1 , 50, 194, "sprite", 15, 0, 1, 'player', false, 0, 1);
 	gamePieceClone = new component(160, 64, img1 , ((gameField.canvas.width - 160) / 2) - 10, 225, "sprite", 15, 0, 1, 'player', false); 
 	//x=((gameField.canvas.width - (gamePiece.width * 2)) / 2) - 10
 	leftArrow = new component(50, 20, left2 , ((gameField.canvas.width - 160) / 2) - 110, 250, "image");
@@ -204,8 +166,8 @@ startGame = function() {
 	// bar = new component(370, 5, "white", 80, 38);
 	// progress = new component(300, 1, "", bar.x + 5, bar.y + 2);
 	// power = new component(50, 30, '' , 20, bar.y - 10, "image");
-	playerName = new component("17px", "Permanent Marker, monospace", 'black' , 0, 0, "center-text");
-    playerPosition = new component("50px", "Frijole, monospace", "violet", 530, 58, "text");
+	playerName = new component("17px", "PermanentMarker, cursive", 'black' , 0, 0, "center-text");
+    playerPosition = new component("50px", "Frijole, monospace", "violet", gameField.canvas.width - 150, 58, "text");
 	finishPositionText =  new component("75px", "Frijole, monospace", "black", 0, 0, "text");
 	th = new component("40px", "Frijole, monospace", "white", 0, 0, "text");
 	background = new component(0, 0, "black", 0, 0);
@@ -218,42 +180,80 @@ const showIndexOptions = () => {
 	optionsBox = document.createElement("span");
 	document.getElementById("game").appendChild(optionsBox);
 	optionsBox.setAttribute("id", "options-box");
-	optionsBox.style.fontFamily = "Rubik Vinyl, monospace";
+	optionsBox.style.fontFamily = "RubikVinyl, monospace";
 	
-	const optionA = document.createElement("h1");
-	const optionB = document.createElement("h1");
-	const optionC = document.createElement("h1");
-	const optionD = document.createElement("h1");
-	
-	optionA.appendChild(document.createTextNode("Play Game"));
-		optionB.appendChild(document.createTextNode("View Portfolio"));
-		optionC.appendChild(document.createTextNode("Credits"));
-		optionD.appendChild(document.createTextNode("Support Me")); 
-		
-		optionsBox.appendChild(optionA).setAttribute("id", "options-a");
-		optionsBox.appendChild(optionB).setAttribute("id", "options-b");
-		optionsBox.appendChild(optionC).setAttribute("id", "options-c");
-		optionsBox.appendChild(optionD).setAttribute("id", "options-d");
-		
-		optionA.onclick = () => {
+	const options = [];
+	const optionNames = [
+		"Play Game",
+		"View Portfolio",
+		"Credits",
+		"Support Me"
+	];
+	const optionFuncs = [
+		() => {
 			removeIndexOptions();
 			gameField.editPlayer();
 			editingPlayer = true;
-		}
-		
-		optionB.onclick = () => {
+		},
+		() => {
+			choose(0);
 			window.open('https://eniolafashola.github.io', '_blank');
-		}
-		
-		optionC.onclick = () => {
+		},
+		() => {
 			removeIndexOptions();
 			gameField.credits();
-		}
-		
-		optionD.onclick = () => {
+		},
+		() => {
 			removeIndexOptions();
 			gameField.support();
 		}
+	]
+
+
+	for(i = 0; i < optionNames.length; i++) {
+		options[i] = document.createElement("h1");
+		options[i].appendChild(document.createTextNode(optionNames[i]));
+		optionsBox.appendChild(options[i]).setAttribute("id", `option${i + 1}`);
+		options[i].onclick = optionFuncs[i];
+	}
+	
+	const choose = (opIndex) => {
+		options[opIndex].style.color = "blue";
+		options[opIndex].style.fontSize = "1.7em";
+
+		for(i = 0; i < optionNames.length; i++) {
+			if(i === opIndex) {
+				options[i].style.color = "blue";
+				options[i].style.fontSize = "1.7em";
+			} else {
+				options[i].style.color = "indigo";
+				options[i].style.fontSize = "1.5em";
+			}
+		}
+
+		document.body.onkeydown = (e) => {
+			if(e.key == "Enter" || e.code == "Enter" || e.key == " " || e.code == "Space") {
+				optionFuncs[opIndex]();
+			};
+		}
+	}
+
+	if(isDesktop) {
+		let num = 0;
+
+		document.body.onkeyup = (e) => {
+			if(e.key == "ArrowUp" || e.code == "ArrowUp" || e.key == "ArrowLeft" || e.code == "ArrowLeft") {
+				num--;
+				num = num < 0 ? 3 : num;
+				choose(num);
+			} else if (e.key == "ArrowDown" || e.code == "ArrowDown" || e.key == "ArrowRight" || e.code == "ArrowRight") {
+				num++;
+				num = num > 3 ? 0 : num;
+				choose(num);
+			};
+		}
+		choose(num);
+	}
 }
 
 const removeIndexOptions = () => {
@@ -265,44 +265,21 @@ const addControl = () => {
 	document.getElementById("game").appendChild(controlBox);
 	controlBox.setAttribute("id", "control-box");
 	
-	const up = document.createElement("span");
-	up.setAttribute("id", "upward");
-	const down = document.createElement("span");
-	down.setAttribute("id", "downward");
-	
-	//up.appendChild(upA);
-	//down.appendChild(downA);
-	
-	controlBox.appendChild(up);
-	controlBox.appendChild(down);
-	
-	up.onmousedown = up.ontouchstart = () => {
+	controlBox.onmousedown = controlBox.ontouchstart = () => {
 		gamePiece.speedY = -50;
-		//up.style.border = "1px solid indigo";
-		
-		up.style.backgroundPosition = "50% 15%";
-		up.style.backgroundColor = "rgba(255,255,255,0.1)";
 	};
-	
-	down.onmousedown = down.ontouchstart = () => {
-		gamePiece.speedY = 50;
-		//down.style.border = "1px solid indigo";
-		down.style.backgroundPosition = "50% 85%";
-		down.style.backgroundColor = "rgba(255,255,255,0.1)";
-	}
 
-	up.onmouseup = up.ontouchend = down.onmouseup = 
-	down.ontouchend =  () => {
-		gamePiece.speedX = 0;
-    	gamePiece.speedY = 0;
+	document.body.onkeydown = (e) => {
+		if(e.key == " " || e.code == "Space" || e.key == "ArrowUp" || e.code == "ArrowUp") {
+			gamePiece.speedY = -50;
+		};
+	}
+	
+	document.body.onkeyup = controlBox.onmouseup = controlBox.ontouchend =  () => {
+		gamePiece.speedX = 0; 
+    	gamePiece.speedY = 50;
     	obstacleSpeed = obsSpeedValue;
 		opponentSpeed = oppSpeedValue;
-		up.style.backgroundPosition = "50% 120%";
-		down.style.backgroundPosition = "50% -20%";
-		up.style.backgroundColor = "rgba(0,0,0,0.0)";
-		//up.style.border = "none";
-		down.style.backgroundColor = "rgba(0,0,0,0.0)";
-		//down.style.border = "none";
 	}
 	
 }
@@ -311,8 +288,6 @@ const showCancelIcon = (action) => {
 	document.getElementById("game").appendChild(cancel).setAttribute("id", "cancel");
 	
 	cancel.onclick = cancel.ontouchstart = cancel.onmousedown = cancel.onselectstart = action;
-	
-	//cancel.onclick = action;
 }
 
 
@@ -324,7 +299,49 @@ const gameField = {
 	document.createElement("canvas"),
 
 	loadScreen : function () {
-		loadFonts();
+
+		/* Storing user's device details in a variable*/
+		const details = navigator.userAgent;
+
+		/* Creating a regular expression
+		containing some mobile devices keywords
+		to search it in details string*/
+		const regexp = /android|iphone|kindle|ipad/i;
+
+		/* Using test() method to search regexp in details
+		it returns boolean value*/
+		const isMobileDevice = regexp.test(details);
+
+		if (isMobileDevice) {
+			console.log("<h3>Its a Mobile Device !</h3>");
+			isDesktop = false;
+		} else {
+			console.log("<h3>Its a Desktop !</h3>");
+			isDesktop = true;
+		}
+		
+		//LOAD FONTS
+		let a = new FontFace("RubikVinyl", "url(fonts/RubikVinyl-Regular.ttf)", {});
+		let b = new FontFace("PermanentMarker", "url(fonts/PermanentMarker-Regular.ttf)", {});
+		let c = new FontFace("Frijole", "url(fonts/Frijole-Regular.ttf)", {});
+		a.load().then((a) => b.load().then((b) => c.load().then((c) => {
+   		document.fonts.add(a);
+   	
+   		//ADD GAME TITLE TO LOAD SCREEN
+   		const title = document.createElement("h1");
+			title.appendChild(document.createTextNode("WEIRD RACE"));
+			title.style.fontFamily = "RubikVinyl, monospace";
+			//title.style.color = "indigo";
+			title.style.fontSize = "3em";
+			loadScreenBox.insertBefore(title, loading);
+   
+   		document.fonts.add(b);
+   		document.fonts.add(c);
+   
+   		preload();
+  	})));
+		
+		
 		this.canvas.width = screen.width < 600 ?  680 : 1200 ;
 		this.canvas.height = 420;
 		this.context =
@@ -333,13 +350,6 @@ const gameField = {
 		loadScreenBox = document.createElement("span");
 		document.getElementById("game").appendChild(loadScreenBox);
 		loadScreenBox.setAttribute("id", "loadscreen-box");
-		loadScreenBox.style.fontFamily = "Rubik Vinyl, monospace";
-	
-		const title = document.createElement("h1");
-		title.appendChild(document.createTextNode("WEIRD RACE"));
-		
-		//title.style.color = "indigo";
-		title.style.fontSize = "3em";
 		
 		const loading = document.createElement("h3");
 		loading.appendChild(document.createTextNode("LOADING.."));
@@ -347,11 +357,9 @@ const gameField = {
 		loading.style.fontFamily = "monospace";
 		loading.style.fontSize = "1em";
 		
-		loadScreenBox.appendChild(title);
 		loadScreenBox.appendChild(loading);
 		
 		document.getElementById("canvas").appendChild(this.canvas);
-		preload();
 	},
 	
 	
@@ -387,7 +395,7 @@ const gameField = {
      	editBox.setAttribute("id", "edit-box");
      
      	const arrowBox = document.createElement("span");
-		 arrowBox.setAttribute("id", "arrow-box");
+		arrowBox.setAttribute("id", "arrow-box");
 		
 		const input = document.createElement("Input");
 		input.setAttribute("id", "name-input");
@@ -399,7 +407,7 @@ const gameField = {
 		document.getElementById("game").appendChild(editBox);
 		
 		editBox.appendChild(arrowBox);
-		editBox.appendChild(input).placeholder = myName 
+		editBox.appendChild(input).placeholder = myName;
 		editBox.appendChild(button);
 	
 		left = document.createElement("span");
@@ -411,12 +419,12 @@ const gameField = {
 		
 		const name = myName;
 		
-		button.onclick = () => {
-			console.log("ggg", input.value)
+		const start = () => {
 			myName = input.value;
-			myName = myName === null ||  /[a-zA-Z]/.test(myName) !== true ? name : myName.toLowerCase();
+			myName = myName === null ||  /[a-zA-Z]/.test(myName) !== true ? name : myName.toUpperCase();
 			
 			if(myName === "Edit Name") {
+				input.focus();
 				input.style.border = "solid 2px red";
 				input.style.color = "red";
 				return
@@ -434,13 +442,27 @@ const gameField = {
 			localStorage.setItem("sprite", JSON.stringify(avatarSelected) );
 		}
 		
-		showCancelIcon(() => {
+		const back = () => {
 			document.getElementById("game").removeChild(editBox);
 			document.getElementById("game").removeChild(cancel);
 			editingPlayer = false;
 			showIndexOptions();
 			return;
-		});
+		};
+
+		button.onclick = start;
+
+		document.body.onkeydown = (e) => {
+			if(e.key == "Escape" || e.code == "Escape") {
+				back();
+			} else if(e.key == " " || e.code == "Space" || e.code == "Enter" || e.key == "Enter") {
+				start();
+			} else if(e.key == "ArrowDown" || e.code == "ArrowDown") {
+				input.focus();
+			}
+		}
+		
+		showCancelIcon(back);
     
 	},
 	
@@ -465,13 +487,13 @@ const gameField = {
 			"PHICHTO",
 			"GOOGLE FONTS"
 		];
-		const linkArray = [
-			"https://www.youtube.com/live/KaivCAaVc14?feature=share",
-			" https://bevouliin.com",
-			" https://www.flaticon.com/authors/iyahicon",
-			" https://www.freepik.com/author/upl56",
-			" https://pngtree.com/phichto_3780894?type=1",
-			" https://fonts.google.com"
+		const actionsArray = [
+			() => window.open("https://www.youtube.com/live/KaivCAaVc14?feature=share", '_blank'),
+			() => window.open("https://bevouliin.com", '_blank'),
+			() => window.open("https://www.flaticon.com/authors/iyahicon", '_blank'),
+			() => window.open("https://www.freepik.com/author/upl56", '_blank'),
+			() => window.open("https://pngtree.com/phichto_3780894?type=1", '_blank'),
+			() => window.open("https://fonts.google.com", '_blank')
 		];
 		const titles = [];
 		const names = [];
@@ -487,108 +509,146 @@ const gameField = {
 				? "LEARN MORE" : "VIEW PAGE";
 			buttons[i] = document.createElement("button");
 			buttons[i].innerText = buttonText;
+			buttons[i].onclick = actionsArray[i];
      		creditsArray[i] = document.createElement("span");
      		
      		creditsArray[i].appendChild(titles[i]);
      		creditsArray[i].appendChild(names[i]);
      		creditsArray[i].appendChild(buttons[i]);
      		creditsBox.appendChild(creditsArray[i])
-     
-     		
+	
      	}
-     
-     buttons[0].onclick = () => window.open(linkArray[0], '_blank');
-     buttons[1].onclick = () => window.open(linkArray[1], '_blank');
-     buttons[2].onclick = () => window.open(linkArray[2], '_blank');
-     buttons[3].onclick = () => window.open(linkArray[3], '_blank');
-     buttons[4].onclick = () => window.open(linkArray[4], '_blank');
-     buttons[5].onclick = () => window.open(linkArray[5], '_blank');
+
+		const choose = (opIndex) => {
+			// creditsArray[opIndex].style.backgroundColor = "blue";
+	
+			for(i = 0; i < creditsBox.length; i++) {
+				if(i === opIndex) {
+					creditsArray[i].style.backgroundColor = "blue";
+				} else {
+					creditsArray[i].style.backgroundColor = " red";
+				}
+			}
+	
+			// document.body.onkeydown = (e) => {
+			// 	if(e.key == "Enter" || e.code == "Enter" || e.key == " " || e.code == "Space") {
+			// 		optionFuncs[opIndex]();
+			// 	};
+			// }
+		}
+
+		
+	
+		if(isDesktop) {
+			let num = 0;
+			
+			document.body.onkeyup = (e) => {
+				if(e.key == "ArrowUp" || e.code == "ArrowUp" || e.key == "ArrowLeft" || e.code == "ArrowLeft") {
+					num > 0 ? num-- : num = creditsArray.length - 1;
+					choose(num);
+				} else if (e.key == "ArrowDown" || e.code == "ArrowDown" || e.key == "ArrowRight" || e.code == "ArrowRight") {
+					num < creditsArray.length - 1 ? num++ : num = 0;
+					choose(num);
+				};
+			}
+		}
      
      	document.getElementById("game").appendChild(creditsBox);
-     	
-     
-		/**for(i = 0; i <= 6; i++) {
-     		creditsArray[i] = document.createElement("span");
-     		creditsBox.appendChild(creditsArray[i])
-     	}*/
-     	console.log(creditsBox)
-     
-		//document.getElementById("game").appendChild(editBox)
 		
-		showCancelIcon(() => {
+		const back = () => {
 			document.getElementById("game").removeChild(creditsBox);
 			document.getElementById("game").removeChild(cancel);
 			showIndexOptions();
 			return;
-		});
+		}
+     
+		document.body.onkeydown = (e) => {
+			if(e.key == "Escape" || e.code == "Escape") {
+				back();
+			} else if(e.key == " " || e.code == "Space" || e.code == "Enter" || e.key == "Enter") {
+				start();
+			};
+		}
+		
+		showCancelIcon(back);
 	},
 	
 	
-     support : function() {
-     	
-     	accounts = document.createElement("span");
-     	const accountA = document.createElement("span");
-     	const accountB = document.createElement("span");
-     
-     	const nameA = document.createElement("h2");
-		 const nameB = document.createElement("h2");
-     
-     	nameA.appendChild(document.createTextNode("ENIOLA MICHEAL FASHOLA"));
-     	nameB.appendChild(document.createTextNode("ENIOLA MICHEAL FASHOLA"));
-     
-     	const numberA = document.createElement("p");
-     	const numberB = document.createElement("p");
-     
-     	numberA.appendChild(document.createTextNode("803-240-4351"));
-     	numberB.appendChild(document.createTextNode("200-999-7981"));
-     
-     	const bankA = document.createElement("h3");
-     	const bankB = document.createElement("h3");
-     
-     	bankA.appendChild(document.createTextNode("PalmPay Bank"));
+	support : function() {
+
+		accounts = document.createElement("span");
+		const accountA = document.createElement("span");
+		const accountB = document.createElement("span");
+
+		const nameA = document.createElement("h2");
+		const nameB = document.createElement("h2");
+
+		nameA.appendChild(document.createTextNode("ENIOLA MICHEAL FASHOLA"));
+		nameB.appendChild(document.createTextNode("ENIOLA MICHEAL FASHOLA"));
+
+		const numberA = document.createElement("p");
+		const numberB = document.createElement("p");
+
+		numberA.appendChild(document.createTextNode("803-240-4351"));
+		numberB.appendChild(document.createTextNode("200-999-7981"));
+
+		const bankA = document.createElement("h3");
+		const bankB = document.createElement("h3");
+
+		bankA.appendChild(document.createTextNode("PalmPay Bank"));
 		bankB.appendChild(document.createTextNode("Kuda Bank"));
-		
+
 		const buttonA = document.createElement("button");
-     	const buttonB = document.createElement("button");
-     
-     	buttonA.innerText = "COPY";
-     	buttonB.innerText = "COPY"; 
+		const buttonB = document.createElement("button");
+
+		buttonA.innerText = "COPY";
+		buttonB.innerText = "COPY"; 
 
 		const copy = (text) => {
-    	window.prompt("COPY BANK DETAILS BELOW", text);
-  		};
-  
-  	  buttonA.onclick = () => copy("8032404351  PALMPAY");
-  
-  	buttonB.onclick = () => copy("2009997981  KUDA");
-     
-     	accounts.setAttribute("id", "accounts");
-     	accountA.setAttribute("id", "account-a");
-     	accountB.setAttribute("id", "account-b");
-     	
-     	accountA.appendChild(nameA);
-     	accountA.appendChild(numberA);
-     	accountA.appendChild(bankA);
-     	accountA.appendChild(buttonA);
-     
-     	accountB.appendChild(nameB);
-     	accountB.appendChild(numberB);
-     	accountB.appendChild(bankB);
-     	accountB.appendChild(buttonB);
-     
-     
-     	accounts.appendChild(accountA);
-     	accounts.appendChild(accountB);
-     
-     	document.getElementById("game").appendChild(accounts);
-     
-     showCancelIcon(() => {
-		document.getElementById("game").removeChild(accounts);
-		document.getElementById("game").removeChild(cancel);
-		showIndexOptions();
-		return;
-		});
-     },
+			window.prompt("COPY BANK DETAILS BELOW", text);
+		};
+
+		buttonA.onclick = () => copy("8032404351  PALMPAY");
+
+		buttonB.onclick = () => copy("2009997981  KUDA");
+
+		accounts.setAttribute("id", "accounts");
+		accountA.setAttribute("id", "account-a");
+		accountB.setAttribute("id", "account-b");
+
+		accountA.appendChild(nameA);
+		accountA.appendChild(numberA);
+		accountA.appendChild(bankA);
+		accountA.appendChild(buttonA);
+
+		accountB.appendChild(nameB);
+		accountB.appendChild(numberB);
+		accountB.appendChild(bankB);
+		accountB.appendChild(buttonB);
+
+
+		accounts.appendChild(accountA);
+		accounts.appendChild(accountB);
+
+		document.getElementById("game").appendChild(accounts);
+
+		const back = () => {
+			document.getElementById("game").removeChild(accounts);
+			document.getElementById("game").removeChild(cancel);
+			showIndexOptions();
+			return;
+		};
+
+		document.body.onkeydown = (e) => {
+			if(e.key == "Escape" || e.code == "Escape") {
+				back();
+			} else if(e.key == " " || e.code == "Space" || e.code == "Enter" || e.key == "Enter") {
+				start();
+			};
+		}
+
+		showCancelIcon(back);
+	},
 
 	start : function() {
 		if(typeof(Storage)!=="undefined"){ 
@@ -596,8 +656,8 @@ const gameField = {
 				minDV = JSON.parse(localStorage.getItem("min") );
 				maxDV = minDV + 15;
 			} else {
-				minDV = 0;
-				maxDV = 15;
+				minDV = 55;
+				maxDV = 70;
 			};
 			
 			if(localStorage.playtimes) {
@@ -608,11 +668,12 @@ const gameField = {
 		};
 
 		checkTimesPlayed = false;
-		minAV = maxDV + 10;
-		maxAV = minAV + 15;
+		minAV = maxDV + 5;
+		maxAV = minAV + 10;
 		this.reset();
 		indexAnimate = false;
 		editingPlayer = false;
+		gamePiece.speedY = 50;
 		obsSpeedValue = 4.8;
 		oppSpeedValue = -67.2;
 		obstacleSpeed = 60;
@@ -634,12 +695,20 @@ const gameField = {
 		button.innerText = "Continue";
 		button.setAttribute("id", "finished-button");
 		finishedBox.appendChild(button);
-		
-		button.onclick = () => {
+
+		const backToHome = () => {
 			document.getElementById("game").removeChild(finishedBox);
 			
 			this.totalReset();
 			this.loadIndex();
+		}
+		
+		button.onclick = backToHome;
+
+		document.body.onkeyup = (e) => {
+			if(e.key == " " || e.code == "Space" || e.code == "Enter" || e.key == "Enter") {
+				backToHome();
+			}
 		}
 		
 		timesPlayed++;
@@ -717,10 +786,14 @@ function component(
 	currentFrame,
 	countBy,
 	name,
-	escapeGapCalculated
+	escapeGapCalculated,
+	extraGapCalculation,
+	extraGap
 ) {
 	this.name = name;
 	this.escapeGapCalculated = escapeGapCalculated;
+	this.extraGapCalculation = extraGapCalculation;
+	this.extraGap = extraGap;
 	this.type = type;
 	this.color = color;
 	this.totalFrames = totalFrames;
@@ -755,6 +828,9 @@ function component(
         	}
         } else if (this.type === "sprite") {
 			frameWidth = this.image.naturalWidth / this.totalFrames;
+			let autoHeight = this.image === img3 
+				? (this.width * this.image.naturalHeight / frameWidth) / 1.6 
+				 : (this.width * this.image.naturalHeight / frameWidth) / 2;
 			let column = this.currentFrame % this.totalFrames;
 
         	ctx.drawImage(
@@ -766,20 +842,20 @@ function component(
         		this.x,
             	this.y,
         		this.width,
-        		this.height
+				autoHeight
 	        );
         } else if (this.type == "text") {
-			ctx.font = this.width + " " + this.height;
-			ctx.fillStyle = this.color;
-			ctx.fillText(this.text, this.x, this.y);
-		  } else if (this.type == "center-text") {
-			ctx.font = this.width + " " + this.height;
-			ctx.fillStyle = this.color;
-			let width = ctx.measureText(this.text).width;
-			ctx.fillText(this.text,(gameField.canvas.width - width) / 2, this.y);
-		  } else {
-			ctx.fillStyle = this.color;
-			ctx.fillRect(this.x, this.y, this.width, this.height);
+				ctx.font = this.width + " " + this.height;
+				ctx.fillStyle = this.color;
+				ctx.fillText(this.text, this.x, this.y);
+			} else if (this.type == "center-text") {
+				ctx.font = this.width + " " + this.height;
+				ctx.fillStyle = this.color;
+				let width = ctx.measureText(this.text).width;
+				ctx.fillText(this.text,(gameField.canvas.width - width) / 2, this.y);
+			} else {
+				ctx.fillStyle = this.color;
+				ctx.fillRect(this.x, this.y, this.width, this.height);
 	  }
 	}
     
@@ -790,8 +866,8 @@ function component(
     this.namePlayer = function(name, color, size ) {
     	playerName.text = name;
         let width = ctx.measureText(playerName.text).width;
-        playerName.width = `${25 + size}px`;
-        playerName.x = name !== opponents[0].name ? (this.x + (this.width/2)) - (width/2) + 5 : (this.x + (this.width/2)) - (width/2) + (width/3) + 5 ;
+        playerName.width = `${20 + size}px`;
+        playerName.x = name === opponents[0].name ? (this.x + (this.width/2)) - width/10  : (this.x + (this.width/2)) - width/2;
         playerName.y = this.y - 3;
         playerName.color = color;
         playerPosition.color = color;
@@ -857,14 +933,78 @@ function component(
 			}
 		}
 	}
+	
+	this.bounce = function(secondsPassed) {
+
+		if(this.extraGapCalculation === 0) {
+			
+			this.extraGap = this.y + (Math.random() * (260 - 2 + 1) + 2);
+			this.extraGapCalculation = 1;
+			
+		} else if (this.extraGapCalculation === 1) {
+			this.y+= (50 * secondsPassed);
+			
+			this.extraGapCalculation = this.y >= this.extraGap ? 2 : 1;
+			
+		} else if(this.extraGapCalculation === 2) {
+			this.extraGap = this.x - (Math.random() * (20 - 5 + 1) + 5);
+			this.extraGapCalculation = 3;
+			
+		} else if(this.extraGapCalculation === 3) {
+			this.y+= (-50 * secondsPassed);
+			
+			if(this.y <= this.extraGap) {
+				this.extraGapCalculation = 0;
+				
+			}
+		} 
+		
+	}
 
 	this.dribble = function() {
 		//OPPONENTS DODGE OBSTACLES
 		for(j = 0; j < obstacleSave.length; j++) {
+			
+			/**if(this.extraGapCalculation === 0) {
+				this.extraGap  = oppY - (Math.random() * (40 - 2 + 1) + 2);
+				this.extraGapCalculation = 1;
+			} else if(this.extraGapCalculation === 1) {
+				this.y--;
+				this.extraGapCalculation = this.y <= this.extraGap 
+					? 2 : 1;
+			} else if(this.extraGapCalculation === 2) {
+					this.extraGap = this.y + (Math.random() * (40 - 2 + 1) + 2);
+					this.extraGapCalculation = 3;
+			} else if(this.extraGapCalculation === 3) {
+				this.y++;
+				if(this.y >= this.extraGap) {
+					this.extraGapCalculation = 0;
+				}
+			}*/ 
+					
+			//this.escapeGap = this.extraGap;
+			
+			/**if(oppY > this.extraGap) {
+					  this.y--;
+				  } else if(oppY < this.extraGap) {
+					  this.y++;
+				  } else {
+					  this.y;
+					//   this.extraGapCalculation = false;
+				  }*/
+				
+			
+					
+			
 			if (this.x + 385 >= obstacleSave[j].x && this.x < obstacleSave[j].x + 15) {
-				let oppY = this.y ;
-				let oppYH = this.y + this.height;
-				gapCenter = (obstacleSave[j].gap - this.height) / 2 ;
+				//console.log(this.extraGap)
+				/**let space = (obstacleSave[j].gap - this.height)/2 >= 80
+					? 80 : (obstacleSave[j].gap - this.height)/2;
+				let oppY = this.y - space / this.extraGap;
+				let oppYH = this.y + this.height + space / this.extraGap;
+				gapCenter = (obstacleSave[j].gap - this.height) / 2 ;*/
+				let oppY = this.y;
+				let oppYH = this.y + this.height ;
 
 				let gapCenter3 = obstacleSave[j].gapY3 + obstacleSave[j].gap > gameField.canvas.height
 					? Math.floor( 
@@ -883,7 +1023,9 @@ function component(
 					|| (oppY > obstacleSave[j].gapY3 && oppYH < obstacleSave[j].gapY3 + obstacleSave[j].gap)
 					|| (oppY > obstacleSave[j].gapY4 && oppYH < obstacleSave[j].gapY4 + obstacleSave[j].gap)
 				) {
+					 
 					this.escapeGap = oppY;
+
 				} else {
 					let a = obstacleSave[j].gapY1 === undefined ? 1000 :  obstacleSave[j].y < oppYH ? oppYH - obstacleSave[j].y : oppY;
 					
@@ -920,10 +1062,13 @@ function component(
 
 				if(oppY > this.escapeGap) {
 					  this.y--;
+					//this.speedY = -50;
 				  } else if(oppY < this.escapeGap) {
 					  this.y++;
+					//this.speedY = 50;
 				  } else {
 					  this.y;
+					//   this.extraGapCalculation = false;
 				  }
 				
 			}
@@ -981,7 +1126,7 @@ function component(
 		let myLeft = this.x;
 		let myRight = this.x + (this.width) -2;
 		let myTop = this.y + 5;
-		let myBottom = this.y + (this.height);
+		let myBottom = this.y + (this.height) - 5;
 		let otherLeft = otherobj.x;
 		let otherRight = otherobj.x + (otherobj.width);
 		let otherTop = otherobj.y;
@@ -1084,16 +1229,35 @@ const moveObstacles = () => {
 		
 		//CHECK PLAYER CRASH
 		if (fieldAnimate && gamePiece.crashWith(gameObstacle[i])) {
-				obstacleSpeed = 0;
-				opponentSpeed = 120;
+				obstacleSpeed = 2;
+				opponentSpeed = 100;
+				//obsSpeedValue = 20;
+				//oppSpeedValue = -17 * obsSpeedValue;
 		} 
+		
+		//CHECK OPPONENTS CRASH
+		for (j = 0; j < opponent.length; j++) {
+			if(opponent[j].crashWith(gameObstacle[i])) {
+				opponents[j].accelerateValue = -100;
+			}
+		}
 	};
 }
 
-const updateIndex = () => {
+const updateIndex = (timeStamp) => {
 	if(!indexAnimate) {
 		return 
 	}
+	
+	intervalRate = 250 / obstacleSpeed;
+
+	secondsPassed = (timeStamp - oldTimeStamp) / 1000  ;
+	secondsPassed = Math.min(secondsPassed, 0.1);
+    oldTimeStamp = timeStamp;
+    
+    fps = Math.round(1 / secondsPassed);
+	
+	
 	gameField.clear();
 	gameField.frameNo += 1;
 	gamePiece.countBy = 2;
@@ -1109,10 +1273,11 @@ const updateIndex = () => {
 	for(j = 0; j < obstacleSave.length; j++) {
 		obstacleSave[j].x+= (-1 * obstacleSpeed);
 	};
+	//gamePiece.bounce(secondsPassed);
 	gamePiece.dribble();
     gamePiece.disableEscapeScreen();
     gamePiece.animate();
-    gamePiece.newPos(secondsPassed);
+ //   gamePiece.newPos(secondsPassed);
     gamePiece.update();
     
     backgroundGrass.speedX = -1;
@@ -1136,6 +1301,14 @@ const pickAvatar = () => {
 	gamePieceClone.update();
 	right.onclick = () => avatarSelected < 2 ? avatarSelected++ : avatarSelected = 0;
 	left.onclick = () => avatarSelected > 0 ?  avatarSelected-- : avatarSelected = 2;
+
+	document.body.onkeyup = (e) => {
+		if(e.key == "ArrowLeft" || e.code == "ArrowLeft") {
+			avatarSelected > 0 ?  avatarSelected-- : avatarSelected = 2;
+		} else if(e.code == "ArrowRight" || e.key == "ArrowRight") {
+			avatarSelected < 2 ? avatarSelected++ : avatarSelected = 0;
+		}
+	}
 	
 	leftArrow.image = avatarSelected > 0 ? left1 : left2;
 	rightArrow.image = avatarSelected < 2 ? right1 : right2;
@@ -1156,7 +1329,7 @@ const pickAvatar = () => {
 // }
 
 const loadOpp = () => {
-	loadOpponents();
+	//loadOpponents();
 	oppLoad = true;
 }
 
@@ -1170,6 +1343,7 @@ const startField = () => {
 }
 
 const finishField = () => {
+	gamePiece.speedY = 0;
 	const width = ctx.measureText(finishPositionText.text).width;
 	finishPositionText.x = ((gameField.canvas.width - width) / 2) - 50;
 	finishPositionText.y = 200;
@@ -1181,6 +1355,7 @@ const finishField = () => {
 	//ENABLE CENTER BUTTON FOR RESTART
 	if(!checkTimesPlayed) {
 		document.getElementById("game").removeChild(controlBox);
+		document.body.onkeyup = document.body.onkeydown = null;
 		setTimeout(()=>gameField.finish(), 1000);
 		checkTimesPlayed = true;
 	};
@@ -1266,7 +1441,6 @@ const updateField = (timeStamp) => {
 				? 1 : 2;
 			
 			playerGeerTimeCount = 0;
-			console.log("checked")
 		};
 	}
 
@@ -1284,7 +1458,9 @@ const updateField = (timeStamp) => {
 				opponents[i].currentFrame,
 				opponents[i].countBy,
 				opponents[i],
-				opponents[i].escapeGapCalculated
+				opponents[i].escapeGapCalculated,
+				opponents[i].extraGapCalculation,
+				opponents[i].extraGap
 			);
 		} else {
 		/** if (gamePiece.crashWith(opponent[i])) {
@@ -1328,7 +1504,7 @@ const updateField = (timeStamp) => {
 					Math.floor(Math.random() * (maxAET - minAET + 1) + minAET);
 					opponents[i].checkAccelerate = true;
 				
-				opponent[i].x < -150 
+				opponent[i].x < -opponent[i].width -20 
 					? opponents[i].accelerateValue*=2 
 					: null;
 			} else if(
@@ -1342,16 +1518,18 @@ const updateField = (timeStamp) => {
 			}
 			
 			
-			opponent[i].x < -350
-				? opponent[i].x = -350:
+			opponent[i].x <= -opponent[i].width-100
+				? opponent[i].x = -opponent[i].width-100:
 				null;
 			
 			opponent[i].countBy = 
-				opponents[i].accelerateValue < 30 									?  1 
+				opponents[i].accelerateValue < 30 									
+				?  1 
 				: opponents[i].accelerateValue < 100
 				? 2 : 3;
 				
 
+			//opponent[i].bounce(secondsPassed);
 			opponent[i].dribble();
 			opponent[i].namePlayer(
 				opponents[i].name, 

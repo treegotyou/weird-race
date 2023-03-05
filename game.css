@@ -8,6 +8,7 @@ body, html {
     height: 100%;
 	text-align: center;
 	overscroll-behavior: contain;
+	overflow: hidden;
 	-webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
@@ -82,15 +83,16 @@ section#game #options-box {
 	left: 0%;
 }
 
-#options-a, #options-b, #options-c, #options-d {
+#option1, #option2, #option3, #option4 {
 	color: indigo;
 	font-size: 1.5em;
 }
-
-#options-a:hover , #options-b:hover, #options-c:hover, #options-d:hover{
+/* 
+#option1:hover , #option2:hover, #option3:hover, #option4:hover{
 	color: blue;
 	font-size: 1.7em;
-}
+	cursor: pointer;
+} */
 
 section#game #edit-box {
 	width: 100%;
@@ -104,14 +106,17 @@ section#game #edit-box {
 }
 
 #arrow-box {
-	width: 100%;
+	width: 80%;
 	height: 20%;
+	align-self: center;
 	display: flex;
+	justify-content: space-between;
 }
 
 #edit-box #left, #edit-box #right {
-	width: 50%;
-	height: 3em;
+	width: 45%;
+	cursor: pointer;
+	height: 100%;
 }
 
 #name-input {
@@ -137,7 +142,7 @@ section#game #edit-box {
 	color: #33FCFF;
 	font-size: 1.5em;
 	font-family: monospace;
-	width: 6em;
+	width: auto;
 	height: 1.6em;
 	margin-top: 0;
 	align-self: center;
@@ -147,10 +152,10 @@ section#game #edit-box {
 
 section#game #control-box {
 	width: 100%;
-	height: 40%;
+	height: 100%;
 	position: absolute;
-	top: 60%;
-	left: 0%;
+	top: 0;
+	left: 0;
 	display: flex;
 	flex-direction: column;
 }
@@ -172,7 +177,7 @@ section#game #control-box {
 	background-image: url(" interact/up-arrow (5).png");
 	background-position: 50% 120%;
 	background-repeat: no-repeat;
-	background-size: 10% auto;
+	background-size: 3em auto;
 	transition:  0.2s;
 }
 
@@ -180,7 +185,7 @@ section#game #control-box {
 	background-image: url(" interact/down-arrow (3).png");
 	background-position: 50% -20%;
 	background-repeat: no-repeat;
-	background-size: 10% auto;
+	background-size: 3em auto;
 	transition:  0.1s;
 }
 
@@ -204,7 +209,7 @@ section#game #finished-box {
 	font-family: monospace;
 	background-color: green;
 	font-size: 1.5em;
-	width: 6em;
+	width: auto;
 	height: 1.6em;
 	border-radius: 4px;
 }
@@ -216,12 +221,16 @@ section#game #credits-box {
 	height: 80%;
 	position: absolute;
 	top: 10%;
-	left: 10%;
-	overflow-y: scroll;
+	display: flex;
+	flex-wrap: wrap;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	overflow: scroll;
 }
 
 #credits-box span {
-	width: 100%;
+	width: min(100%, 300px);
 	height: 20%;
 	margin: 2em 0 2em 0;
 	display: flex;
@@ -248,11 +257,13 @@ section#game #credits-box {
 }
 
 section#game #accounts {
-	width: 80%;
+	width: 600px;
+	max-width: 80%;
 	height: 100%;
 	position: absolute;
 	top: 0%;
-	left: 10%;
+	/* left: 10%; */
+	align-self: center;
 	display: flex;
 	flex-direction: column;
 	justify-content: space-evenly;
@@ -286,6 +297,10 @@ section#game #accounts {
 	color: white;
 	font-size: 1.2em;
 	margin: 0;
+}
+
+button:hover {
+	cursor: pointer;
 }
 
 :-webkit-full-screen {

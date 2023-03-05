@@ -5,8 +5,14 @@
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
 	<title>Asher</title>
+	<link rel="manifest" href="/manifest.json">
 	<link rel="stylesheet" type="text/css" href="game.css">
-</head>
+	<script>
+		if (navigator && navigator.serviceWorker) {
+			navigator.serviceWorker.register('sw.js');
+		}
+	</script>
+</head> 
 <body id="body" onload="gameField.loadScreen()">
 	<section id="game">
 		<span id="canvas"></span>
